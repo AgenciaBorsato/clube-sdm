@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clube SDM — Super Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--blue-900:#0a2540;--blue-800:#0f3a5e;--blue-700:#155a8a;--blue-600:#1a73b5;--blue-500:#2196f3;--blue-400:#42a5f5;--blue-300:#90caf9;--blue-200:#bbdefb;--blue-100:#e3f2fd;--blue-50:#f0f7ff;--gold-500:#d4a853;--gold-400:#e0be72;--gold-200:#f5e6be;--red-500:#d94452;--red-100:#fde8ea;--green-500:#27b880;--green-100:#e6fbf1;--bg:#f0f4f8;--card:#fff;--text-primary:#0a2540;--text-secondary:#4a6580;--text-muted:#8a9bb5;--border:#d5dfe9;--shadow-sm:0 1px 3px rgba(10,37,64,.06);--shadow-md:0 4px 16px rgba(10,37,64,.08);--shadow-lg:0 8px 32px rgba(10,37,64,.12);--shadow-xl:0 16px 48px rgba(10,37,64,.16);--radius:12px;--radius-lg:18px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;overflow-x:hidden}
+
+/* LOGIN */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--blue-900),var(--blue-700),var(--blue-500));position:relative;overflow:hidden}
+.login-page::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(33,150,243,.15),transparent 70%);top:-200px;right:-100px}
+.login-card{background:var(--card);border-radius:var(--radius-lg);padding:48px 40px;width:100%;max-width:420px;box-shadow:var(--shadow-xl);position:relative;z-index:1;text-align:center;animation:slideUp .6s ease-out}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.login-card h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--blue-900);margin-bottom:6px}
+.login-card .subtitle{font-size:14px;color:var(--text-secondary);margin-bottom:32px}
+.login-error{background:var(--red-100);color:var(--red-500);padding:12px 16px;border-radius:var(--radius);font-size:14px;margin-bottom:16px;display:none}
+
+/* FORMS */
+.form-group{margin-bottom:20px;text-align:left}.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'DM Sans',sans-serif;transition:all .2s;background:var(--blue-50);color:var(--text-primary)}
+.form-group input[type="color"]{height:50px;padding:4px 8px;cursor:pointer}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 4px rgba(33,150,243,.12);background:#fff}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--text-muted)}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--blue-700),var(--blue-500));color:#fff;box-shadow:0 4px 12px rgba(33,150,243,.3)}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(33,150,243,.4)}
+.btn-primary-full{background:linear-gradient(135deg,var(--blue-700),var(--blue-500));color:#fff;box-shadow:0 4px 12px rgba(33,150,243,.3);width:100%}.btn-primary-full:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(33,150,243,.4)}
+.btn-secondary{background:var(--blue-100);color:var(--blue-700)}.btn-secondary:hover{background:var(--blue-200)}
+.btn-gold{background:linear-gradient(135deg,var(--gold-500),var(--gold-400));color:#fff;box-shadow:0 4px 12px rgba(212,168,83,.3)}
+.btn-danger{background:var(--red-100);color:var(--red-500)}.btn-danger:hover{background:#fbd0d5}
+.btn-sm{padding:10px 18px;font-size:13px}.btn-xs{padding:6px 12px;font-size:11px;border-radius:8px}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+
+/* APP LAYOUT */
+.app{display:none;min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;width:260px;height:100vh;background:var(--blue-900);padding:24px 0;display:flex;flex-direction:column;z-index:100;transition:transform .3s;overflow-y:auto}
+.sidebar-brand{padding:0 20px 16px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px;text-align:center}
+.sidebar-brand h2{font-family:'Playfair Display',serif;font-size:22px;color:#fff;font-weight:700;margin-bottom:6px}
+.sidebar-brand .role-badge{display:inline-block;background:linear-gradient(135deg,var(--gold-500),var(--gold-400));color:#fff;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1px}
+.nav-section{padding:0 20px;margin:12px 0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.3)}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 24px;color:rgba(255,255,255,.6);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(33,150,243,.15);color:var(--blue-300);border-left-color:var(--blue-400)}
+.nav-item .nav-icon{width:20px;text-align:center;font-size:18px}
+.sidebar-footer{margin-top:auto;padding:16px 24px;border-top:1px solid rgba(255,255,255,.08)}
+.main-content{margin-left:260px;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--card);padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h1{font-family:'Playfair Display',serif;font-size:22px;color:var(--blue-900)}
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--blue-900)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+
+/* PAGES */
+.page-content{padding:32px}.page{display:none}.page.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:32px}
+.stat-card{background:var(--card);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+.stat-card .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+.stat-card .stat-value{font-size:24px;font-weight:700;color:var(--blue-900);line-height:1;margin-bottom:4px}
+.stat-card .stat-label{font-size:12px;color:var(--text-muted)}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-bottom:24px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.card-title{font-size:17px;font-weight:700;color:var(--blue-900)}
+
+/* TABLES */
+.table-wrapper{overflow-x:auto}table{width:100%;border-collapse:collapse}
+table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);border-bottom:2px solid var(--border)}
+table td{padding:12px 14px;font-size:13px;border-bottom:1px solid #eef3f0}table tr:hover{background:var(--blue-50)}
+table tr.clickable{cursor:pointer}table tr.clickable:hover{background:var(--blue-100)}
+
+/* BADGES */
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-blue{background:var(--blue-100);color:var(--blue-700)}.badge-gold{background:var(--gold-200);color:#8a6d2b}
+.badge-red{background:var(--red-100);color:var(--red-500)}.badge-green{background:var(--green-100);color:var(--green-500)}
+.badge-purple{background:#f3e8ff;color:#7c3aed}.badge-orange{background:#fff7ed;color:#c2410c}
+.badge-teal{background:#e0faf5;color:#0f766e}.badge-pink{background:#fce7f3;color:#be185d}
+.badge-amber{background:var(--gold-200);color:#92400e}
+
+/* SEARCH / FILTERS */
+.search-bar{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:flex-end}
+.search-bar input{flex:1;min-width:200px;padding:14px 18px;border:2px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'DM Sans',sans-serif;background:#fff}
+.search-bar input:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 4px rgba(33,150,243,.12)}
+.search-bar select{padding:14px 18px;border:2px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text-primary);min-width:160px}
+.search-bar select:focus{outline:none;border-color:var(--blue-500)}
+
+/* TOASTS */
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+.toast{padding:14px 20px;border-radius:var(--radius);color:#fff;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;max-width:360px}
+.toast-success{background:var(--blue-700)}.toast-error{background:var(--red-500)}.toast-info{background:var(--blue-900)}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(-10px)}}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,37,64,.5);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}.modal{background:var(--card);border-radius:var(--radius-lg);padding:32px;max-width:640px;width:90%;box-shadow:var(--shadow-xl);animation:slideUp .3s ease;max-height:90vh;overflow-y:auto}
+.modal h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:20px;color:var(--blue-900)}
+.modal-actions{display:flex;gap:12px;margin-top:24px}.modal-actions .btn{flex:1}
+
+/* CHART */
+.chart-container{background:var(--card);border-radius:var(--radius-lg);padding:24px;border:1px solid var(--border);margin-bottom:24px}
+.chart-bars-h{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.chart-bar-h{display:flex;align-items:center;gap:12px}
+.chart-bar-h .bar-label{width:140px;font-size:13px;font-weight:600;color:var(--blue-900);text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chart-bar-h .bar-track{flex:1;background:var(--blue-50);border-radius:8px;height:28px;overflow:hidden;position:relative}
+.chart-bar-h .bar-fill{height:100%;background:linear-gradient(90deg,var(--blue-500),var(--blue-400));border-radius:8px;transition:width .6s ease;min-width:2px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
+.chart-bar-h .bar-value{font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.chart-bar-h .bar-value-outside{font-size:11px;font-weight:700;color:var(--blue-700);margin-left:8px;white-space:nowrap}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;flex-wrap:wrap}
+.pagination button{padding:8px 14px;border:2px solid var(--border);border-radius:var(--radius);background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text-secondary);transition:all .2s}
+.pagination button:hover{border-color:var(--blue-500);color:var(--blue-500)}
+.pagination button.active{background:var(--blue-500);color:#fff;border-color:var(--blue-500)}
+.pagination button:disabled{opacity:.4;cursor:not-allowed}
+.pagination .page-info{font-size:13px;color:var(--text-muted);font-weight:500}
+
+/* SEGMENTO BADGES */
+.seg-farmacia{background:#dbeafe;color:#1d4ed8}.seg-supermercado{background:#d1fae5;color:#065f46}
+.seg-padaria{background:#fef3c7;color:#92400e}.seg-veterinaria{background:#ede9fe;color:#5b21b6}
+.seg-petshop{background:#fce7f3;color:#9d174d}.seg-loja{background:#e0e7ff;color:#3730a3}
+.seg-restaurante{background:#ffedd5;color:#9a3412}.seg-clinica{background:#ccfbf1;color:#134e4a}
+.seg-outro{background:#f3f4f6;color:#374151}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:48px 20px;color:var(--text-muted)}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:15px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.mobile-overlay.show{display:block}
+  .main-content{margin-left:0}.hamburger{display:block}.page-content{padding:16px}.topbar{padding:12px 16px}
+  .stats-grid{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}
+  .login-card{margin:20px;padding:32px 24px}
+  .search-bar{flex-direction:column}.search-bar input,.search-bar select{width:100%;min-width:auto}
+  .chart-bar-h .bar-label{width:80px;font-size:11px}
+  .modal{padding:24px 20px;max-width:95%}
+}
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- LOGIN PAGE -->
+<div class="login-page" id="loginPage">
+<div class="login-card">
+  <h1>Clube SDM</h1>
+  <p class="subtitle">Painel Administrativo</p>
+  <div class="login-error" id="loginError"></div>
+  <div class="form-group">
+    <label>Email</label>
+    <input type="email" id="loginEmail" placeholder="admin@clubesdm.com" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+  </div>
+  <div class="form-group">
+    <label>Senha</label>
+    <input type="password" id="loginPassword" placeholder="Sua senha" onkeydown="if(event.key==='Enter')doLogin()">
+  </div>
+  <button class="btn btn-primary-full" id="btnLogin" onclick="doLogin()">Entrar</button>
+</div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h2>Clube SDM</h2>
+    <span class="role-badge">Super Admin</span>
+  </div>
+  <div class="nav-section">Geral</div>
+  <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')">
+    <span class="nav-icon">&#x1F4CA;</span> Dashboard
+  </div>
+  <div class="nav-item" data-page="clubes" onclick="goTo('clubes')">
+    <span class="nav-icon">&#x1F3EA;</span> Meus Clubes
+  </div>
+  <div class="nav-section">Gestao</div>
+  <div class="nav-item" data-page="usuarios" onclick="goTo('usuarios')">
+    <span class="nav-icon">&#x1F465;</span> Usuarios
+  </div>
+  <div class="nav-item" data-page="relatorios" onclick="goTo('relatorios')">
+    <span class="nav-icon">&#x1F4C8;</span> Relatorios
+  </div>
+  <div class="sidebar-footer">
+    <div class="nav-item" onclick="doLogout()" style="border-left:none;padding-left:0">
+      <span class="nav-icon">&#x1F6AA;</span> Sair
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+      <h1 id="pageTitle">Dashboard</h1>
+    </div>
+    <span id="todayDate" style="font-size:13px;color:var(--text-muted)"></span>
+  </div>
+
+  <div class="page-content">
+
+    <!-- PAGE: DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="dashStatsGrid">
+        <div class="stat-card"><div class="stat-icon" style="background:var(--blue-100);color:var(--blue-600)">&#x1F3EA;</div><div class="stat-value">—</div><div class="stat-label">Total Clubes Ativos</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:var(--green-100);color:var(--green-500)">&#x1F465;</div><div class="stat-value">—</div><div class="stat-label">Total Clientes</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:var(--gold-200);color:var(--gold-500)">&#x1F4B0;</div><div class="stat-value">—</div><div class="stat-label">Vendas do Mes (R$)</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:var(--blue-100);color:var(--blue-600)">&#x1F4B5;</div><div class="stat-value">—</div><div class="stat-label">Total Vendas (R$)</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Visao Geral dos Clubes</span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Nome</th><th>Segmento</th><th>Clientes</th><th>Vendas Mes</th><th>Total Vendas</th><th>Status</th></tr></thead>
+            <tbody id="dashClubesTable"><tr><td colspan="6" class="empty-state"><p>Carregando...</p></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: CLUBES -->
+    <div class="page" id="page-clubes">
+      <div class="search-bar">
+        <input type="text" id="clubesSearch" placeholder="Buscar clube por nome, slug ou segmento..." oninput="filtrarClubes()">
+        <button class="btn btn-primary btn-sm" onclick="criarClube()">+ Novo Clube</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Clubes Cadastrados</span>
+          <span class="badge badge-blue" id="clubesTotalBadge">0 clubes</span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Nome</th><th>Slug</th><th>Segmento</th><th>Telefone</th><th>Email</th><th>Status</th><th>Acoes</th></tr></thead>
+            <tbody id="clubesList"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="clubesPagination"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: USUARIOS -->
+    <div class="page" id="page-usuarios">
+      <div class="search-bar">
+        <select id="filtroUsuarioClube" onchange="renderUsuarios()">
+          <option value="">Todos os Clubes</option>
+        </select>
+        <select id="filtroUsuarioRole" onchange="renderUsuarios()">
+          <option value="">Todos os Roles</option>
+          <option value="CLUB_ADMIN">CLUB_ADMIN</option>
+          <option value="OPERATOR">OPERATOR</option>
+        </select>
+        <input type="text" id="usuariosSearch" placeholder="Buscar usuario..." oninput="filtrarUsuarios()">
+        <button class="btn btn-primary btn-sm" onclick="criarUsuario()">+ Novo Usuario</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Usuarios do Sistema</span>
+          <span class="badge badge-blue" id="usuariosTotalBadge">0 usuarios</span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Nome</th><th>Email</th><th>Role</th><th>Clube</th><th>Ultimo Login</th><th>Status</th><th>Acoes</th></tr></thead>
+            <tbody id="usuariosList"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="usuariosPagination"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: RELATORIOS -->
+    <div class="page" id="page-relatorios">
+      <div class="chart-container">
+        <div class="card-header">
+          <span class="card-title">Vendas por Clube (Mes Atual)</span>
+        </div>
+        <div class="chart-bars-h" id="relChartBars">
+          <div class="empty-state"><span class="empty-icon">&#x1F4CA;</span><p>Carregando...</p></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Ranking de Clubes</span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>#</th><th>Nome</th><th>Segmento</th><th>Clientes</th><th>Vendas Mes</th><th>Total</th></tr></thead>
+            <tbody id="relRankingTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div><!-- /main-content -->
+</div><!-- /app -->
+
+<!-- MODAL: CLUBE -->
+<div class="modal-overlay" id="modalClube">
+<div class="modal" style="max-width:700px">
+  <h3 id="modalClubeTitulo">Novo Clube</h3>
+  <input type="hidden" id="clubeEditId" value="">
+  <div class="form-row">
+    <div class="form-group"><label>Nome</label><input type="text" id="clubeNome" placeholder="Nome do clube" oninput="gerarSlug()"></div>
+    <div class="form-group"><label>Slug</label><input type="text" id="clubeSlug" placeholder="slug-automatico"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Segmento</label>
+      <select id="clubeSegmento">
+        <option value="">Selecione...</option>
+        <option value="Farmacia">Farmacia</option>
+        <option value="Supermercado">Supermercado</option>
+        <option value="Padaria">Padaria</option>
+        <option value="Veterinaria">Veterinaria</option>
+        <option value="Petshop">Petshop</option>
+        <option value="Loja">Loja</option>
+        <option value="Restaurante">Restaurante</option>
+        <option value="Clinica">Clinica</option>
+        <option value="Outro">Outro</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Expiracao (meses)</label><input type="number" id="clubeExpiracao" min="1" max="36" value="6" placeholder="6"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Telefone</label><input type="text" id="clubeTelefone" placeholder="(00) 00000-0000" oninput="maskPhone(this)"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="clubeEmail" placeholder="contato@clube.com"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group" style="flex:2"><label>Endereco</label><input type="text" id="clubeEndereco" placeholder="Rua, numero, bairro"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Cidade</label><input type="text" id="clubeCidade" placeholder="Cidade"></div>
+    <div class="form-group">
+      <label>Estado</label>
+      <select id="clubeEstado">
+        <option value="">UF</option>
+        <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option>
+        <option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option>
+        <option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option>
+        <option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+        <option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option>
+        <option>SE</option><option>TO</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Cor Primaria</label><input type="color" id="clubeCorPrimaria" value="#0a2540"></div>
+    <div class="form-group"><label>Cor Secundaria</label><input type="color" id="clubeCorSecundaria" value="#2196f3"></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('modalClube')">Cancelar</button>
+    <button class="btn btn-primary" id="btnSalvarClube" onclick="salvarClube()">Salvar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: USUARIO -->
+<div class="modal-overlay" id="modalUsuario">
+<div class="modal">
+  <h3 id="modalUsuarioTitulo">Novo Usuario</h3>
+  <input type="hidden" id="usuarioEditId" value="">
+  <div class="form-row">
+    <div class="form-group"><label>Nome</label><input type="text" id="usuarioNome" placeholder="Nome completo"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="usuarioEmail" placeholder="email@exemplo.com"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group" id="grupoSenhaUsuario"><label>Senha (min. 8 caracteres)</label><input type="password" id="usuarioSenha" placeholder="Minimo 8 caracteres" minlength="8"></div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="usuarioRole">
+        <option value="">Selecione...</option>
+        <option value="CLUB_ADMIN">CLUB_ADMIN</option>
+        <option value="OPERATOR">OPERATOR</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Clube</label>
+      <select id="usuarioClube"><option value="">Selecione o clube...</option></select>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('modalUsuario')">Cancelar</button>
+    <button class="btn btn-primary" id="btnSalvarUsuario" onclick="salvarUsuario()">Salvar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: RESET SENHA -->
+<div class="modal-overlay" id="modalResetSenha">
+<div class="modal" style="max-width:420px">
+  <h3>Resetar Senha</h3>
+  <input type="hidden" id="resetSenhaUserId" value="">
+  <p style="margin-bottom:16px;color:var(--text-secondary);font-size:14px">Defina uma nova senha para o usuario <strong id="resetSenhaUserName"></strong>.</p>
+  <div class="form-group"><label>Nova Senha (min. 8 caracteres)</label><input type="password" id="resetSenhaNova" placeholder="Nova senha" minlength="8"></div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('modalResetSenha')">Cancelar</button>
+    <button class="btn btn-primary" onclick="confirmarResetSenha()">Resetar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: CONFIRMAR ACAO -->
+<div class="modal-overlay" id="modalConfirmar">
+<div class="modal" style="max-width:420px">
+  <h3 id="modalConfirmarTitulo">Confirmar</h3>
+  <p id="modalConfirmarTexto"></p>
+  <div class="modal-actions" style="margin-top:20px">
+    <button class="btn btn-secondary" onclick="closeModal('modalConfirmar')">Cancelar</button>
+    <button class="btn btn-danger" id="btnConfirmarAcao" onclick="executarConfirmacao()">Confirmar</button>
+  </div>
+</div>
+</div>
+
+<script>
+/* =========================================================
+   CLUBE SDM — SUPER ADMIN SPA
+   ========================================================= */
+
+// ---------- HELPERS ----------
+function fM(n){return(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function fD(iso){if(!iso)return'—';const d=new Date(iso);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function fDS(iso){return iso?new Date(iso).toLocaleDateString('pt-BR'):'—';}
+function maskPhone(el){let v=el.value.replace(/\D/g,'').slice(0,11);if(v.length>6)v=v.replace(/(\d{2})(\d{5})(\d+)/,'($1) $2-$3');else if(v.length>2)v=v.replace(/(\d{2})(\d+)/,'($1) $2');el.value=v;}
+function toast(m,t='success'){const c=document.getElementById('toastContainer'),e=document.createElement('div');e.className='toast toast-'+t;e.textContent=m;c.appendChild(e);setTimeout(()=>e.remove(),3000);}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+// ---------- API ----------
+async function api(ep,data=null){
+  const o=data?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}:{};
+  const token=sessionStorage.getItem('sdm_token');
+  if(token){
+    if(!o.headers)o.headers={};
+    o.headers['Authorization']='Bearer '+token;
+  }
+  try{const r=await fetch('api/'+ep,o);return r.json();}
+  catch(e){return{sucesso:false,erro:'Erro de conexao'};}
+}
+
+// ---------- AUTH ----------
+async function doLogin(){
+  const btn=document.getElementById('btnLogin');
+  const email=document.getElementById('loginEmail').value.trim();
+  const senha=document.getElementById('loginPassword').value;
+  if(!email||!senha){toast('Preencha email e senha','error');return;}
+  btn.disabled=true;btn.textContent='Entrando...';
+  const r=await api('auth.php',{acao:'login',email:email,senha:senha});
+  btn.disabled=false;btn.textContent='Entrar';
+  if(r.sucesso){
+    if(r.usuario&&r.usuario.role!=='SUPER_ADMIN'){
+      const e=document.getElementById('loginError');
+      e.textContent='Acesso restrito a Super Admins.';e.style.display='block';
+      setTimeout(()=>e.style.display='none',4000);return;
+    }
+    sessionStorage.setItem('sdm_logged','1');
+    sessionStorage.setItem('sdm_user',JSON.stringify(r.usuario||{}));
+    if(r.token)sessionStorage.setItem('sdm_token',r.token);
+    showApp();
+  }else{
+    const e=document.getElementById('loginError');
+    e.textContent=r.erro||'Credenciais invalidas';e.style.display='block';
+    setTimeout(()=>e.style.display='none',4000);
+  }
+}
+
+function doLogout(){
+  api('auth.php',{acao:'logout'});
+  sessionStorage.removeItem('sdm_logged');
+  sessionStorage.removeItem('sdm_user');
+  sessionStorage.removeItem('sdm_token');
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginPage').style.display='flex';
+  document.getElementById('loginEmail').value='';
+  document.getElementById('loginPassword').value='';
+}
+
+function showApp(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='block';
+  updateDate();
+  goTo('dashboard');
+}
+
+// ---------- NAVIGATION ----------
+const PT={dashboard:'Dashboard',clubes:'Meus Clubes',usuarios:'Usuarios',relatorios:'Relatorios'};
+function goTo(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector(`[data-page="${p}"]`)?.classList.add('active');
+  document.getElementById('pageTitle').textContent=PT[p]||'';
+  closeSidebar();
+  if(p==='dashboard')updateDashboard();
+  if(p==='clubes')renderClubes();
+  if(p==='usuarios'){carregarClubesSelect();renderUsuarios();}
+  if(p==='relatorios')renderRelatorios();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('mobileOverlay').classList.toggle('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('show');}
+function updateDate(){document.getElementById('todayDate').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
+
+// ---------- SEGMENTO HELPERS ----------
+function segBadge(seg){
+  const s=(seg||'Outro').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return `<span class="badge seg-${s}">${seg||'Outro'}</span>`;
+}
+function statusBadge(st){
+  const ativo=st==='ativo'||st===1||st==='1'||st===true;
+  return ativo?'<span class="badge badge-green">Ativo</span>':'<span class="badge badge-red">Inativo</span>';
+}
+function roleBadge(role){
+  if(role==='CLUB_ADMIN')return'<span class="badge badge-blue">CLUB_ADMIN</span>';
+  if(role==='OPERATOR')return'<span class="badge badge-green">OPERATOR</span>';
+  if(role==='SUPER_ADMIN')return'<span class="badge badge-gold">SUPER_ADMIN</span>';
+  return'<span class="badge">'+role+'</span>';
+}
+
+// ---------- DASHBOARD ----------
+async function updateDashboard(){
+  const s=await api('clubes.php?acao=global_stats');
+  if(s&&!s.erro){
+    document.getElementById('dashStatsGrid').innerHTML=`
+      <div class="stat-card"><div class="stat-icon" style="background:var(--blue-100);color:var(--blue-600)">&#x1F3EA;</div><div class="stat-value">${s.total_clubes_ativos||0}</div><div class="stat-label">Total Clubes Ativos</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--green-100);color:var(--green-500)">&#x1F465;</div><div class="stat-value">${s.total_clientes||0}</div><div class="stat-label">Total Clientes</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--gold-200);color:var(--gold-500)">&#x1F4B0;</div><div class="stat-value">${fM(s.vendas_mes||0)}</div><div class="stat-label">Vendas do Mes (R$)</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--blue-100);color:var(--blue-600)">&#x1F4B5;</div><div class="stat-value">${fM(s.total_vendas||0)}</div><div class="stat-label">Total Vendas (R$)</div></div>`;
+  }
+
+  const c=await api('clubes.php?acao=clubs_overview');
+  const clubes=c.clubes||c.data||[];
+  if(clubes.length){
+    document.getElementById('dashClubesTable').innerHTML=clubes.map(cl=>`
+      <tr class="clickable" onclick="goTo('clubes')">
+        <td><strong>${cl.nome}</strong></td>
+        <td>${segBadge(cl.segmento)}</td>
+        <td>${cl.total_clientes||0}</td>
+        <td>${fM(cl.vendas_mes||0)}</td>
+        <td>${fM(cl.total_vendas||0)}</td>
+        <td>${statusBadge(cl.status)}</td>
+      </tr>`).join('');
+  }else{
+    document.getElementById('dashClubesTable').innerHTML='<tr><td colspan="6" class="empty-state"><span class="empty-icon">&#x1F3EA;</span><p>Nenhum clube cadastrado</p></td></tr>';
+  }
+}
+
+// ---------- CLUBES ----------
+let clubesData=[];
+let clubesPag={page:1,perPage:10,total:0};
+let clubesSearchTO;
+
+async function renderClubes(){
+  const busca=document.getElementById('clubesSearch').value.trim();
+  const r=await api('clubes.php?acao=listar&busca='+encodeURIComponent(busca)+'&page='+clubesPag.page+'&per_page='+clubesPag.perPage);
+  clubesData=r.clubes||r.data||[];
+  clubesPag.total=r.total||clubesData.length;
+  document.getElementById('clubesTotalBadge').textContent=clubesPag.total+' clubes';
+
+  if(clubesData.length){
+    document.getElementById('clubesList').innerHTML=clubesData.map(cl=>`
+      <tr>
+        <td><strong>${cl.nome}</strong></td>
+        <td><code style="font-size:12px;background:var(--blue-50);padding:2px 8px;border-radius:4px">${cl.slug||'—'}</code></td>
+        <td>${segBadge(cl.segmento)}</td>
+        <td>${cl.telefone||'—'}</td>
+        <td>${cl.email||'—'}</td>
+        <td>${statusBadge(cl.status)}</td>
+        <td>
+          <button class="btn btn-secondary btn-xs" onclick="editarClube(${cl.id})" style="margin:2px">Editar</button>
+          <button class="btn ${cl.status==='ativo'||cl.status===1||cl.status==='1'?'btn-danger':'btn-secondary'} btn-xs" onclick="toggleClubeStatus(${cl.id},'${cl.nome}','${cl.status}')" style="margin:2px">${cl.status==='ativo'||cl.status===1||cl.status==='1'?'Desativar':'Ativar'}</button>
+        </td>
+      </tr>`).join('');
+  }else{
+    document.getElementById('clubesList').innerHTML='<tr><td colspan="7" class="empty-state"><span class="empty-icon">&#x1F3EA;</span><p>Nenhum clube encontrado</p></td></tr>';
+  }
+  renderClubesPagination();
+}
+
+function renderClubesPagination(){
+  const total=Math.ceil(clubesPag.total/clubesPag.perPage);
+  if(total<=1){document.getElementById('clubesPagination').innerHTML='';return;}
+  let html='<button '+(clubesPag.page<=1?'disabled':'')+' onclick="clubesPag.page--;renderClubes()">&laquo; Anterior</button>';
+  for(let i=1;i<=total;i++){
+    if(total>7&&i>2&&i<total-1&&Math.abs(i-clubesPag.page)>1){if(i===3||i===total-2)html+='<span class="page-info">...</span>';continue;}
+    html+=`<button class="${i===clubesPag.page?'active':''}" onclick="clubesPag.page=${i};renderClubes()">${i}</button>`;
+  }
+  html+='<button '+(clubesPag.page>=total?'disabled':'')+' onclick="clubesPag.page++;renderClubes()">Proximo &raquo;</button>';
+  document.getElementById('clubesPagination').innerHTML=html;
+}
+
+function filtrarClubes(){clearTimeout(clubesSearchTO);clubesSearchTO=setTimeout(()=>{clubesPag.page=1;renderClubes();},300);}
+
+function gerarSlug(){
+  const nome=document.getElementById('clubeNome').value;
+  document.getElementById('clubeSlug').value=nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+
+function criarClube(){
+  document.getElementById('modalClubeTitulo').textContent='Novo Clube';
+  document.getElementById('clubeEditId').value='';
+  ['clubeNome','clubeSlug','clubeTelefone','clubeEmail','clubeEndereco','clubeCidade'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('clubeSegmento').value='';
+  document.getElementById('clubeEstado').value='';
+  document.getElementById('clubeExpiracao').value='6';
+  document.getElementById('clubeCorPrimaria').value='#0a2540';
+  document.getElementById('clubeCorSecundaria').value='#2196f3';
+  openModal('modalClube');
+}
+
+async function editarClube(id){
+  const r=await api('clubes.php?acao=detalhe&id='+id);
+  const cl=r.clube||r.data||r;
+  if(!cl||!cl.id){toast('Erro ao carregar clube','error');return;}
+  document.getElementById('modalClubeTitulo').textContent='Editar Clube';
+  document.getElementById('clubeEditId').value=cl.id;
+  document.getElementById('clubeNome').value=cl.nome||'';
+  document.getElementById('clubeSlug').value=cl.slug||'';
+  document.getElementById('clubeSegmento').value=cl.segmento||'';
+  document.getElementById('clubeExpiracao').value=cl.expiracao_meses||cl.expiracao||6;
+  document.getElementById('clubeTelefone').value=cl.telefone||'';
+  document.getElementById('clubeEmail').value=cl.email||'';
+  document.getElementById('clubeEndereco').value=cl.endereco||'';
+  document.getElementById('clubeCidade').value=cl.cidade||'';
+  document.getElementById('clubeEstado').value=cl.estado||'';
+  document.getElementById('clubeCorPrimaria').value=cl.cor_primaria||'#0a2540';
+  document.getElementById('clubeCorSecundaria').value=cl.cor_secundaria||'#2196f3';
+  openModal('modalClube');
+}
+
+async function salvarClube(){
+  const id=document.getElementById('clubeEditId').value;
+  const nome=document.getElementById('clubeNome').value.trim();
+  const slug=document.getElementById('clubeSlug').value.trim();
+  if(!nome){toast('Nome obrigatorio','error');return;}
+  if(!slug){toast('Slug obrigatorio','error');return;}
+
+  const btn=document.getElementById('btnSalvarClube');
+  btn.disabled=true;btn.textContent='Salvando...';
+
+  const payload={
+    acao:id?'editar':'criar',
+    nome,slug,
+    segmento:document.getElementById('clubeSegmento').value,
+    expiracao_meses:parseInt(document.getElementById('clubeExpiracao').value)||6,
+    telefone:document.getElementById('clubeTelefone').value,
+    email:document.getElementById('clubeEmail').value.trim(),
+    endereco:document.getElementById('clubeEndereco').value.trim(),
+    cidade:document.getElementById('clubeCidade').value.trim(),
+    estado:document.getElementById('clubeEstado').value,
+    cor_primaria:document.getElementById('clubeCorPrimaria').value,
+    cor_secundaria:document.getElementById('clubeCorSecundaria').value
+  };
+  if(id)payload.id=parseInt(id);
+
+  const r=await api('clubes.php',payload);
+  btn.disabled=false;btn.textContent='Salvar';
+
+  if(r.sucesso){
+    toast(id?'Clube atualizado!':'Clube criado!');
+    closeModal('modalClube');
+    renderClubes();
+  }else{
+    toast(r.erro||'Erro ao salvar','error');
+  }
+}
+
+let pendingConfirmAction=null;
+function toggleClubeStatus(id,nome,status){
+  const ativo=status==='ativo'||status===1||status==='1';
+  document.getElementById('modalConfirmarTitulo').textContent=ativo?'Desativar Clube':'Ativar Clube';
+  document.getElementById('modalConfirmarTexto').innerHTML=ativo
+    ?`Deseja desativar o clube <strong>${nome}</strong>? Os usuarios nao poderao acessar o sistema.`
+    :`Deseja reativar o clube <strong>${nome}</strong>?`;
+  pendingConfirmAction=async()=>{
+    const r=await api('clubes.php',{acao:'toggle_status',id:id,status:ativo?'inativo':'ativo'});
+    if(r.sucesso){toast(ativo?'Clube desativado!':'Clube ativado!');renderClubes();}
+    else toast(r.erro||'Erro','error');
+  };
+  openModal('modalConfirmar');
+}
+
+function executarConfirmacao(){
+  closeModal('modalConfirmar');
+  if(pendingConfirmAction){pendingConfirmAction();pendingConfirmAction=null;}
+}
+
+// ---------- USUARIOS ----------
+let usuariosData=[];
+let usuariosPag={page:1,perPage:10,total:0};
+let usuariosSearchTO;
+let clubesListCache=[];
+
+async function carregarClubesSelect(){
+  if(clubesListCache.length)return;
+  const r=await api('clubes.php?acao=listar&per_page=999');
+  clubesListCache=r.clubes||r.data||[];
+  // Populate filter dropdown
+  const sel=document.getElementById('filtroUsuarioClube');
+  sel.innerHTML='<option value="">Todos os Clubes</option>'+clubesListCache.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  // Populate modal dropdown
+  const sel2=document.getElementById('usuarioClube');
+  sel2.innerHTML='<option value="">Selecione o clube...</option>'+clubesListCache.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+}
+
+async function renderUsuarios(){
+  await carregarClubesSelect();
+  const busca=document.getElementById('usuariosSearch').value.trim();
+  const clubeId=document.getElementById('filtroUsuarioClube').value;
+  const role=document.getElementById('filtroUsuarioRole').value;
+  let ep='usuarios.php?acao=listar&page='+usuariosPag.page+'&per_page='+usuariosPag.perPage;
+  if(busca)ep+='&busca='+encodeURIComponent(busca);
+  if(clubeId)ep+='&clube_id='+clubeId;
+  if(role)ep+='&role='+encodeURIComponent(role);
+
+  const r=await api(ep);
+  usuariosData=r.usuarios||r.data||[];
+  usuariosPag.total=r.total||usuariosData.length;
+  document.getElementById('usuariosTotalBadge').textContent=usuariosPag.total+' usuarios';
+
+  if(usuariosData.length){
+    document.getElementById('usuariosList').innerHTML=usuariosData.map(u=>`
+      <tr>
+        <td><strong>${u.nome}</strong></td>
+        <td>${u.email}</td>
+        <td>${roleBadge(u.role)}</td>
+        <td>${u.clube_nome||'—'}</td>
+        <td>${fD(u.ultimo_login)}</td>
+        <td>${statusBadge(u.status)}</td>
+        <td>
+          <button class="btn btn-secondary btn-xs" onclick="editarUsuario(${u.id})" style="margin:2px">Editar</button>
+          <button class="btn btn-secondary btn-xs" onclick="resetarSenha(${u.id},'${(u.nome||'').replace(/'/g,"\\'")}')" style="margin:2px">Senha</button>
+        </td>
+      </tr>`).join('');
+  }else{
+    document.getElementById('usuariosList').innerHTML='<tr><td colspan="7" class="empty-state"><span class="empty-icon">&#x1F465;</span><p>Nenhum usuario encontrado</p></td></tr>';
+  }
+  renderUsuariosPagination();
+}
+
+function renderUsuariosPagination(){
+  const total=Math.ceil(usuariosPag.total/usuariosPag.perPage);
+  if(total<=1){document.getElementById('usuariosPagination').innerHTML='';return;}
+  let html='<button '+(usuariosPag.page<=1?'disabled':'')+' onclick="usuariosPag.page--;renderUsuarios()">&laquo; Anterior</button>';
+  for(let i=1;i<=total;i++){
+    if(total>7&&i>2&&i<total-1&&Math.abs(i-usuariosPag.page)>1){if(i===3||i===total-2)html+='<span class="page-info">...</span>';continue;}
+    html+=`<button class="${i===usuariosPag.page?'active':''}" onclick="usuariosPag.page=${i};renderUsuarios()">${i}</button>`;
+  }
+  html+='<button '+(usuariosPag.page>=total?'disabled':'')+' onclick="usuariosPag.page++;renderUsuarios()">Proximo &raquo;</button>';
+  document.getElementById('usuariosPagination').innerHTML=html;
+}
+
+function filtrarUsuarios(){clearTimeout(usuariosSearchTO);usuariosSearchTO=setTimeout(()=>{usuariosPag.page=1;renderUsuarios();},300);}
+
+function criarUsuario(){
+  document.getElementById('modalUsuarioTitulo').textContent='Novo Usuario';
+  document.getElementById('usuarioEditId').value='';
+  ['usuarioNome','usuarioEmail','usuarioSenha'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('usuarioRole').value='';
+  document.getElementById('usuarioClube').value='';
+  document.getElementById('grupoSenhaUsuario').style.display='';
+  carregarClubesSelect();
+  openModal('modalUsuario');
+}
+
+async function editarUsuario(id){
+  const r=await api('usuarios.php?acao=detalhe&id='+id);
+  const u=r.usuario||r.data||r;
+  if(!u||!u.id){toast('Erro ao carregar usuario','error');return;}
+  document.getElementById('modalUsuarioTitulo').textContent='Editar Usuario';
+  document.getElementById('usuarioEditId').value=u.id;
+  document.getElementById('usuarioNome').value=u.nome||'';
+  document.getElementById('usuarioEmail').value=u.email||'';
+  document.getElementById('usuarioSenha').value='';
+  document.getElementById('grupoSenhaUsuario').style.display='none';
+  document.getElementById('usuarioRole').value=u.role||'';
+  await carregarClubesSelect();
+  document.getElementById('usuarioClube').value=u.clube_id||'';
+  openModal('modalUsuario');
+}
+
+async function salvarUsuario(){
+  const id=document.getElementById('usuarioEditId').value;
+  const nome=document.getElementById('usuarioNome').value.trim();
+  const email=document.getElementById('usuarioEmail').value.trim();
+  const role=document.getElementById('usuarioRole').value;
+  const clube_id=document.getElementById('usuarioClube').value;
+  if(!nome){toast('Nome obrigatorio','error');return;}
+  if(!email){toast('Email obrigatorio','error');return;}
+  if(!role){toast('Selecione o role','error');return;}
+  if(!clube_id){toast('Selecione o clube','error');return;}
+
+  const btn=document.getElementById('btnSalvarUsuario');
+  btn.disabled=true;btn.textContent='Salvando...';
+
+  const payload={acao:id?'editar':'criar',nome,email,role,clube_id:parseInt(clube_id)};
+  if(id)payload.id=parseInt(id);
+
+  if(!id){
+    const senha=document.getElementById('usuarioSenha').value;
+    if(!senha||senha.length<8){btn.disabled=false;btn.textContent='Salvar';toast('Senha deve ter no minimo 8 caracteres','error');return;}
+    payload.senha=senha;
+  }
+
+  const r=await api('usuarios.php',payload);
+  btn.disabled=false;btn.textContent='Salvar';
+
+  if(r.sucesso){
+    toast(id?'Usuario atualizado!':'Usuario criado!');
+    closeModal('modalUsuario');
+    renderUsuarios();
+  }else{
+    toast(r.erro||'Erro ao salvar','error');
+  }
+}
+
+function resetarSenha(id,nome){
+  document.getElementById('resetSenhaUserId').value=id;
+  document.getElementById('resetSenhaUserName').textContent=nome;
+  document.getElementById('resetSenhaNova').value='';
+  openModal('modalResetSenha');
+}
+
+async function confirmarResetSenha(){
+  const id=document.getElementById('resetSenhaUserId').value;
+  const senha=document.getElementById('resetSenhaNova').value;
+  if(!senha||senha.length<8){toast('Senha deve ter no minimo 8 caracteres','error');return;}
+  const r=await api('usuarios.php',{acao:'reset_senha',id:parseInt(id),nova_senha:senha});
+  closeModal('modalResetSenha');
+  if(r.sucesso){toast('Senha resetada com sucesso!');}
+  else{toast(r.erro||'Erro ao resetar senha','error');}
+}
+
+// ---------- RELATORIOS ----------
+async function renderRelatorios(){
+  const r=await api('clubes.php?acao=clubs_overview');
+  const clubes=(r.clubes||r.data||[]).filter(c=>c.status==='ativo'||c.status===1||c.status==='1');
+
+  // Horizontal bar chart
+  const maxV=Math.max(...clubes.map(c=>c.vendas_mes||0),1);
+  if(clubes.length){
+    document.getElementById('relChartBars').innerHTML=clubes.sort((a,b)=>(b.vendas_mes||0)-(a.vendas_mes||0)).map(c=>{
+      const pct=Math.max(2,Math.round(((c.vendas_mes||0)/maxV)*100));
+      const val=fM(c.vendas_mes||0);
+      return `<div class="chart-bar-h">
+        <span class="bar-label" title="${c.nome}">${c.nome}</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%">${pct>20?'<span class="bar-value">'+val+'</span>':''}</div>
+        </div>
+        ${pct<=20?'<span class="bar-value-outside">'+val+'</span>':''}
+      </div>`;
+    }).join('');
+  }else{
+    document.getElementById('relChartBars').innerHTML='<div class="empty-state"><span class="empty-icon">&#x1F4CA;</span><p>Nenhum dado disponivel</p></div>';
+  }
+
+  // Ranking table
+  const sorted=[...clubes].sort((a,b)=>(b.total_vendas||0)-(a.total_vendas||0));
+  if(sorted.length){
+    document.getElementById('relRankingTable').innerHTML=sorted.map((c,i)=>`
+      <tr>
+        <td><strong>${i+1}&#186;</strong></td>
+        <td><strong>${c.nome}</strong></td>
+        <td>${segBadge(c.segmento)}</td>
+        <td>${c.total_clientes||0}</td>
+        <td>${fM(c.vendas_mes||0)}</td>
+        <td><span class="badge badge-blue">${fM(c.total_vendas||0)}</span></td>
+      </tr>`).join('');
+  }else{
+    document.getElementById('relRankingTable').innerHTML='<tr><td colspan="6" class="empty-state"><p>Nenhum dado disponivel</p></td></tr>';
+  }
+}
+
+// ---------- INIT ----------
+(function(){
+  if(sessionStorage.getItem('sdm_logged')==='1'){
+    // Verify session is still valid
+    api('auth.php?acao=verificar').then(r=>{
+      if(r.sucesso){
+        showApp();
+      }else{
+        sessionStorage.removeItem('sdm_logged');
+        sessionStorage.removeItem('sdm_user');
+        sessionStorage.removeItem('sdm_token');
+      }
+    }).catch(()=>{
+      // Offline fallback: still show app
+      showApp();
+    });
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clube SDM — Painel do Clube</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--blue-900:#0a2540;--blue-800:#0f3a5e;--blue-700:#155a8a;--blue-600:#1a73b5;--blue-500:#2196f3;--blue-400:#42a5f5;--blue-300:#90caf9;--blue-200:#bbdefb;--blue-100:#e3f2fd;--blue-50:#f0f7ff;--gold-500:#d4a853;--gold-400:#e0be72;--gold-200:#f5e6be;--red-500:#d94452;--red-100:#fde8ea;--green-500:#27b880;--green-100:#e6fbf1;--bg:#f0f4f8;--card:#fff;--text-primary:#0a2540;--text-secondary:#4a6580;--text-muted:#8a9bb5;--border:#d5dfe9;--shadow-sm:0 1px 3px rgba(10,37,64,.06);--shadow-md:0 4px 16px rgba(10,37,64,.08);--shadow-lg:0 8px 32px rgba(10,37,64,.12);--shadow-xl:0 16px 48px rgba(10,37,64,.16);--radius:12px;--radius-lg:18px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;overflow-x:hidden}
+
+/* LOGIN */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--blue-900),var(--blue-700),var(--blue-500));position:relative;overflow:hidden}
+.login-page::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(33,150,243,.15),transparent 70%);top:-200px;right:-100px}
+.login-card{background:var(--card);border-radius:var(--radius-lg);padding:48px 40px;width:100%;max-width:420px;box-shadow:var(--shadow-xl);position:relative;z-index:1;text-align:center;animation:slideUp .6s ease-out}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{max-width:260px;margin:0 auto 24px;display:block}
+.login-card h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--blue-900);margin-bottom:6px}
+.login-card .subtitle{font-size:14px;color:var(--text-secondary);margin-bottom:32px}
+
+/* FORMS */
+.form-group{margin-bottom:20px;text-align:left}.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'DM Sans',sans-serif;transition:all .2s;background:var(--blue-50);color:var(--text-primary)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 4px rgba(33,150,243,.12);background:#fff}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--text-muted)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--blue-700),var(--blue-500));color:#fff;box-shadow:0 4px 12px rgba(33,150,243,.3);width:100%}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(33,150,243,.4)}
+.btn-secondary{background:var(--blue-100);color:var(--blue-700)}.btn-secondary:hover{background:var(--blue-200)}
+.btn-gold{background:linear-gradient(135deg,var(--gold-500),var(--gold-400));color:#fff;box-shadow:0 4px 12px rgba(212,168,83,.3)}
+.btn-danger{background:var(--red-100);color:var(--red-500)}.btn-danger:hover{background:#fbd0d5}
+.btn-sm{padding:10px 18px;font-size:13px}.btn-xs{padding:6px 12px;font-size:11px}
+.login-error{background:var(--red-100);color:var(--red-500);padding:12px 16px;border-radius:var(--radius);font-size:14px;margin-bottom:16px;display:none}
+
+/* LAYOUT */
+.app{display:none;min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;width:260px;height:100vh;background:var(--blue-900);padding:24px 0;display:flex;flex-direction:column;z-index:100;transition:transform .3s;overflow-y:auto}
+.sidebar-brand{padding:0 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px;text-align:center}
+.sidebar-brand h2{font-family:'Playfair Display',serif;color:#fff;font-size:18px;margin-bottom:4px}
+.sidebar-brand small{color:rgba(255,255,255,.5);font-size:11px}
+.sidebar-brand .role-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:8px}
+.role-badge.admin{background:rgba(33,150,243,.2);color:var(--blue-300)}
+.role-badge.operator{background:rgba(39,184,128,.2);color:var(--green-500)}
+.nav-section{padding:4px 24px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.25);margin-top:16px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 24px;color:rgba(255,255,255,.6);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(33,150,243,.15);color:var(--blue-300);border-left-color:var(--blue-400)}
+.nav-item .nav-icon{width:20px;text-align:center;font-size:18px}
+.sidebar-footer{margin-top:auto;padding:16px 24px;border-top:1px solid rgba(255,255,255,.08)}
+.sidebar-divider{height:1px;background:rgba(255,255,255,.08);margin:12px 20px}
+.main-content{margin-left:260px;min-height:100vh}
+.topbar{background:var(--card);padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h1{font-family:'Playfair Display',serif;font-size:22px;color:var(--blue-900)}
+.page-content{padding:32px}.page{display:none}.page.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+.stat-card{background:var(--card);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+.stat-card .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+.stat-card .stat-value{font-size:24px;font-weight:700;color:var(--blue-900);line-height:1;margin-bottom:4px}
+.stat-card .stat-label{font-size:12px;color:var(--text-muted)}
+
+/* CARDS & TABLES */
+.card{background:var(--card);border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-bottom:24px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.card-title{font-size:17px;font-weight:700;color:var(--blue-900)}
+.table-wrapper{overflow-x:auto}table{width:100%;border-collapse:collapse}
+table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);border-bottom:2px solid var(--border)}
+table td{padding:12px 14px;font-size:13px;border-bottom:1px solid #eef3f0}table tr:hover{background:var(--blue-50)}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-blue{background:var(--blue-100);color:var(--blue-700)}.badge-gold{background:var(--gold-200);color:#8a6d2b}
+.badge-red{background:var(--red-100);color:var(--red-500)}.badge-green{background:var(--green-100);color:var(--green-500)}
+
+/* SEARCH */
+.search-bar{display:flex;gap:12px;margin-bottom:24px}
+.search-bar input{flex:1;padding:14px 18px;border:2px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'DM Sans',sans-serif;background:#fff}
+.search-bar input:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 4px rgba(33,150,243,.12)}
+
+/* CUSTOMER DETAIL */
+.customer-detail{display:none;background:linear-gradient(135deg,var(--blue-50),#fff);border:2px solid var(--blue-200);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;animation:fadeIn .3s ease}
+.customer-detail.show{display:block}
+.customer-info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px}
+.customer-info-item label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:4px}
+.customer-info-item span{font-size:15px;font-weight:600;color:var(--blue-900)}
+
+/* POINTS */
+.points-display{display:flex;align-items:center;gap:24px;padding:20px;background:var(--card);border-radius:var(--radius);border:1px solid var(--border)}
+.points-circle{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold-500),var(--gold-400));display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;box-shadow:0 4px 16px rgba(212,168,83,.3);flex-shrink:0}
+.points-circle .pts-value{font-size:18px;font-weight:700;line-height:1}.points-circle .pts-label{font-size:9px;text-transform:uppercase;opacity:.9}
+.total-row{background:var(--blue-50);font-weight:700}.total-row td{border-bottom:2px solid var(--blue-300)}
+.estornada{opacity:.5;text-decoration:line-through}
+
+/* FORM ROW */
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px}
+.form-row.full .form-group{grid-column:1/-1}
+
+/* RESGATE */
+.resgate-form{display:flex;gap:12px;align-items:flex-end}.resgate-form .form-group{flex:1;margin-bottom:0}
+
+/* CONFIG */
+.config-box{background:linear-gradient(135deg,var(--blue-100),var(--blue-50));border:2px solid var(--blue-200);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px}
+.config-box h3{font-family:'Playfair Display',serif;font-size:18px;color:var(--blue-900);margin-bottom:16px}
+.config-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.config-month{background:#fff;border:2px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;transition:all .2s}
+.config-month.active{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(33,150,243,.15)}
+.config-month label{display:block;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px}
+.config-month input{width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;font-size:15px;font-weight:700;text-align:center;font-family:'DM Sans',sans-serif;color:var(--blue-900)}
+.config-month input:focus{outline:none;border-color:var(--blue-500)}.config-month .suffix{font-size:11px;color:var(--text-muted);margin-top:2px}
+
+/* TOAST */
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+.toast{padding:14px 20px;border-radius:var(--radius);color:#fff;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;max-width:360px}
+.toast-success{background:var(--blue-700)}.toast-error{background:var(--red-500)}.toast-info{background:var(--blue-900)}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(-10px)}}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,37,64,.5);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}.modal{background:var(--card);border-radius:var(--radius-lg);padding:32px;max-width:500px;width:90%;box-shadow:var(--shadow-xl);animation:slideUp .3s ease;max-height:90vh;overflow-y:auto}
+.modal.modal-lg{max-width:640px}
+.modal h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:16px;color:var(--blue-900)}
+.preview-box{background:var(--green-100);border:2px solid var(--green-500);border-radius:var(--radius);padding:16px;margin:16px 0;text-align:center}
+.preview-box .pv-val{font-size:28px;font-weight:700;color:var(--green-500)}
+.preview-box .pv-lbl{font-size:13px;color:var(--text-secondary)}
+
+/* CHART */
+.chart-container{background:var(--card);border-radius:var(--radius-lg);padding:24px;border:1px solid var(--border);margin-bottom:24px}
+.chart-bars{display:flex;align-items:flex-end;gap:8px;height:200px;padding-top:20px}
+.chart-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.chart-bar .bar{width:100%;background:linear-gradient(to top,var(--blue-500),var(--blue-400));border-radius:6px 6px 0 0;min-height:4px;transition:height .5s ease;position:relative}
+.chart-bar .bar:hover{opacity:.8}.chart-bar .bar-label{font-size:10px;color:var(--text-muted);margin-top:6px;font-weight:600}
+.chart-bar .bar-value{font-size:10px;color:var(--blue-900);font-weight:700;margin-bottom:4px}
+
+/* EXPORT CARDS */
+.export-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.export-card{background:var(--card);border-radius:var(--radius-lg);padding:40px 32px;box-shadow:var(--shadow-sm);border:2px solid var(--border);text-align:center;cursor:pointer;transition:all .3s}
+.export-card:hover{border-color:var(--blue-400);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.export-card .export-icon{font-size:48px;margin-bottom:16px}
+.export-card h3{font-family:'Playfair Display',serif;font-size:18px;color:var(--blue-900);margin-bottom:8px}
+.export-card p{font-size:14px;color:var(--text-secondary)}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px}
+.pagination button{padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text-secondary);transition:all .2s}
+.pagination button:hover{background:var(--blue-50);border-color:var(--blue-300)}
+.pagination button.active{background:var(--blue-500);color:#fff;border-color:var(--blue-500)}
+.pagination button:disabled{opacity:.4;cursor:not-allowed}
+
+/* HAMBURGER & MOBILE */
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--blue-900)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .mobile-overlay.show{display:block}
+  .main-content{margin-left:0}
+  .hamburger{display:block}
+  .page-content{padding:16px}
+  .topbar{padding:12px 16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  .customer-info-grid{grid-template-columns:1fr 1fr}
+  .login-card{margin:20px;padding:32px 24px}
+  .resgate-form{flex-direction:column}
+  .config-grid{grid-template-columns:repeat(3,1fr)}
+  .chart-bars{height:150px}
+  .export-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ============ LOGIN ============ -->
+<div class="login-page" id="loginPage">
+<div class="login-card">
+<h1 id="loginTitle">Painel do Clube</h1>
+<p class="subtitle">Acesse sua conta para gerenciar o programa de fidelidade</p>
+<div class="login-error" id="loginError"></div>
+<div class="form-group">
+  <label>Email</label>
+  <input type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+</div>
+<div class="form-group">
+  <label>Senha</label>
+  <input type="password" id="loginPassword" placeholder="Sua senha" onkeydown="if(event.key==='Enter')doLogin()">
+</div>
+<button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+</div>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="app" id="app">
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+<div class="sidebar-brand">
+  <h2 id="sidebarClubName">Clube</h2>
+  <small>Programa de Fidelidade</small>
+  <div>
+    <span class="role-badge" id="sidebarRoleBadge">OPERADOR</span>
+  </div>
+</div>
+
+<div class="nav-section">Principal</div>
+<div class="nav-item active" onclick="goTo('dashboard')" data-page="dashboard"><span class="nav-icon">&#x1F4CA;</span> Dashboard</div>
+<div class="nav-item" onclick="goTo('venda')" data-page="venda"><span class="nav-icon">&#x1F6D2;</span> Nova Compra</div>
+
+<div class="nav-section">Clientes</div>
+<div class="nav-item" onclick="goTo('cadastro')" data-page="cadastro"><span class="nav-icon">&#x1F465;</span> Cadastrar Cliente</div>
+<div class="nav-item" onclick="goTo('consulta')" data-page="consulta"><span class="nav-icon">&#x1F50D;</span> Consultar Cliente</div>
+<div class="nav-item" onclick="goTo('clientes')" data-page="clientes"><span class="nav-icon">&#x1F4CB;</span> Todos os Clientes</div>
+
+<div class="nav-section">Financeiro</div>
+<div class="nav-item" onclick="goTo('resgate')" data-page="resgate"><span class="nav-icon">&#x1F381;</span> Resgatar Cr&eacute;dito</div>
+
+<div id="navAdmin">
+<div class="nav-section">Configura&ccedil;&otilde;es</div>
+<div class="nav-item" onclick="goTo('config')" data-page="config"><span class="nav-icon">&#x2699;&#xFE0F;</span> Cashback Mensal</div>
+<div class="nav-item" onclick="goTo('relatorios')" data-page="relatorios"><span class="nav-icon">&#x1F4C8;</span> Relat&oacute;rios</div>
+<div class="nav-item" onclick="goTo('exportar')" data-page="exportar"><span class="nav-icon">&#x1F4C4;</span> Exportar</div>
+</div>
+
+<div class="sidebar-divider"></div>
+
+<div class="nav-item" onclick="goTo('senha')" data-page="senha"><span class="nav-icon">&#x1F511;</span> Alterar Senha</div>
+
+<div class="sidebar-footer">
+<div class="nav-item" onclick="doLogout()" style="border:none;color:rgba(255,255,255,.4)"><span class="nav-icon">&#x1F6AA;</span> Sair</div>
+</div>
+</nav>
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+    <h1 id="pageTitle">Dashboard</h1>
+  </div>
+  <span id="todayDate" style="font-size:13px;color:var(--text-muted)"></span>
+</div>
+
+<div class="page-content">
+
+<!-- ============ PAGE: DASHBOARD ============ -->
+<div class="page active" id="page-dashboard">
+<div class="stats-grid" id="statsGrid"></div>
+<div class="card">
+  <div class="card-header"><span class="card-title">&Uacute;ltimas Compras</span></div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Cliente</th><th>Telefone</th><th>Valor</th><th>Cashback</th><th>Data</th></tr></thead>
+      <tbody id="recentPurchases"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: NOVA COMPRA ============ -->
+<div class="page" id="page-venda">
+<div class="card">
+  <div class="card-header"><span class="card-title">Buscar Cliente</span></div>
+  <div class="search-bar">
+    <input type="text" id="vendaTel" placeholder="Telefone ou CPF do cliente" oninput="maskPhone(this)" onkeydown="if(event.key==='Enter')buscarVenda()">
+    <button class="btn btn-primary" style="width:auto" onclick="buscarVenda()">Buscar</button>
+  </div>
+</div>
+<div class="customer-detail" id="vendaInfo">
+  <div class="customer-info-grid" id="vendaData"></div>
+  <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+    <div class="form-group" style="flex:1;margin-bottom:0;min-width:200px">
+      <label>Valor da Compra (R$)</label>
+      <input type="text" id="vendaValor" placeholder="0,00" oninput="maskMoney(this)" onkeydown="if(event.key==='Enter')confirmarCompra()">
+    </div>
+    <button class="btn btn-primary" style="width:auto" onclick="confirmarCompra()">Registrar Compra</button>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: CADASTRAR CLIENTE ============ -->
+<div class="page" id="page-cadastro">
+<div class="card">
+  <div class="card-header"><span class="card-title">Novo Cliente</span></div>
+  <div class="form-row full">
+    <div class="form-group"><label>Nome Completo</label><input type="text" id="cadNome" placeholder="Nome do cliente"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>CPF</label><input type="text" id="cadCPF" placeholder="000.000.000-00" oninput="maskCPF(this)"></div>
+    <div class="form-group"><label>Telefone</label><input type="text" id="cadTel" placeholder="(00) 00000-0000" oninput="maskPhone(this)"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Email</label><input type="email" id="cadEmail" placeholder="email@exemplo.com"></div>
+    <div class="form-group"><label>Data de Nascimento</label><input type="date" id="cadNascimento"></div>
+  </div>
+  <div class="form-row full">
+    <div class="form-group"><label>Endere&ccedil;o</label><input type="text" id="cadEndereco" placeholder="Rua, n&uacute;mero, complemento"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Cidade</label><input type="text" id="cadCidade" placeholder="Cidade"></div>
+    <div class="form-group"><label>Estado</label>
+      <select id="cadEstado">
+        <option value="">Selecione...</option>
+        <option value="AC">Acre</option><option value="AL">Alagoas</option><option value="AP">Amap&aacute;</option>
+        <option value="AM">Amazonas</option><option value="BA">Bahia</option><option value="CE">Cear&aacute;</option>
+        <option value="DF">Distrito Federal</option><option value="ES">Esp&iacute;rito Santo</option><option value="GO">Goi&aacute;s</option>
+        <option value="MA">Maranh&atilde;o</option><option value="MT">Mato Grosso</option><option value="MS">Mato Grosso do Sul</option>
+        <option value="MG">Minas Gerais</option><option value="PA">Par&aacute;</option><option value="PB">Para&iacute;ba</option>
+        <option value="PR">Paran&aacute;</option><option value="PE">Pernambuco</option><option value="PI">Piau&iacute;</option>
+        <option value="RJ">Rio de Janeiro</option><option value="RN">Rio Grande do Norte</option><option value="RS">Rio Grande do Sul</option>
+        <option value="RO">Rond&ocirc;nia</option><option value="RR">Roraima</option><option value="SC">Santa Catarina</option>
+        <option value="SP">S&atilde;o Paulo</option><option value="SE">Sergipe</option><option value="TO">Tocantins</option>
+      </select>
+    </div>
+    <div class="form-group"><label>CEP</label><input type="text" id="cadCEP" placeholder="00000-000" oninput="maskCEP(this)"></div>
+  </div>
+  <div class="form-row full">
+    <div class="form-group"><label>Observa&ccedil;&otilde;es</label><textarea id="cadObs" rows="3" placeholder="Anota&ccedil;&otilde;es sobre o cliente..."></textarea></div>
+  </div>
+  <button class="btn btn-primary" style="width:auto" onclick="cadastrarCliente()">Cadastrar</button>
+</div>
+</div>
+
+<!-- ============ PAGE: CONSULTAR CLIENTE ============ -->
+<div class="page" id="page-consulta">
+<div class="card">
+  <div class="card-header"><span class="card-title">Consultar Cliente</span></div>
+  <div class="search-bar">
+    <input type="text" id="consultaBusca" placeholder="Telefone, CPF ou nome" onkeydown="if(event.key==='Enter')consultarCliente()">
+    <button class="btn btn-primary" style="width:auto" onclick="consultarCliente()">Buscar</button>
+  </div>
+</div>
+<div class="customer-detail" id="consultaResult">
+  <div class="customer-info-grid" id="consultaData"></div>
+  <div class="points-display" id="consultaPoints"></div>
+  <div class="card" style="margin-top:20px;margin-bottom:16px">
+    <div class="card-header"><span class="card-title">Hist&oacute;rico de Compras</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Data</th><th>Valor</th><th>Cashback</th><th>Status</th><th>A&ccedil;&atilde;o</th></tr></thead>
+        <tbody id="consultaHistorico"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:0">
+    <div class="card-header"><span class="card-title">Hist&oacute;rico de Resgates</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Data</th><th>Valor</th></tr></thead>
+        <tbody id="consultaResgateList"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: TODOS OS CLIENTES ============ -->
+<div class="page" id="page-clientes">
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Todos os Clientes</span>
+    <span class="badge badge-blue" id="totalBadge">0 clientes</span>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="clientesSearch" placeholder="Buscar por nome, CPF ou telefone..." oninput="filtrarClientes()">
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>Total Compras</th><th>Cr&eacute;dito</th><th>A&ccedil;&otilde;es</th></tr></thead>
+      <tbody id="clientesList"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="clientesPagination"></div>
+</div>
+</div>
+
+<!-- ============ PAGE: RESGATAR CREDITO ============ -->
+<div class="page" id="page-resgate">
+<div class="card">
+  <div class="card-header"><span class="card-title">Resgatar Cr&eacute;dito</span></div>
+  <div class="search-bar">
+    <input type="text" id="resgateTel" placeholder="Telefone ou CPF" oninput="maskPhone(this)" onkeydown="if(event.key==='Enter')buscarResgate()">
+    <button class="btn btn-primary" style="width:auto" onclick="buscarResgate()">Buscar</button>
+  </div>
+</div>
+<div class="customer-detail" id="resgateInfo">
+  <div class="customer-info-grid" id="resgateData"></div>
+  <div class="points-display" id="resgatePoints"></div>
+  <div class="resgate-form" style="margin-top:20px">
+    <div class="form-group">
+      <label>Valor a Resgatar (R$)</label>
+      <input type="text" id="resgateValor" placeholder="0,00" oninput="maskMoney(this)" onkeydown="if(event.key==='Enter')realizarResgate()">
+    </div>
+    <button class="btn btn-gold" onclick="realizarResgate()">Resgatar</button>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: CASHBACK MENSAL (ADMIN) ============ -->
+<div class="page" id="page-config">
+<div class="config-box">
+  <h3>Cashback Mensal &mdash; <span id="configAno"></span></h3>
+  <div class="config-grid" id="configGrid"></div>
+  <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
+    <button class="btn btn-primary" style="width:auto" onclick="salvarConfig()">Salvar Configura&ccedil;&otilde;es</button>
+    <span id="configStatus" style="color:var(--green-500);font-weight:600"></span>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: RELATORIOS (ADMIN) ============ -->
+<div class="page" id="page-relatorios">
+<div class="chart-container">
+  <div class="card-header">
+    <span class="card-title">Vendas Mensais &mdash; <span id="chartAno"></span></span>
+  </div>
+  <div class="chart-bars" id="chartBars"></div>
+</div>
+<div class="card">
+  <div class="card-header"><span class="card-title">Ranking de Clientes</span></div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>#</th><th>Cliente</th><th>Telefone</th><th>Compras</th><th>Total</th></tr></thead>
+      <tbody id="rankingList"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: EXPORTAR (ADMIN) ============ -->
+<div class="page" id="page-exportar">
+<div class="export-grid">
+  <div class="export-card" onclick="exportarCSV('clientes')">
+    <div class="export-icon">&#x1F465;</div>
+    <h3>Exportar Clientes (CSV)</h3>
+    <p>Baixe a lista completa de clientes cadastrados com todos os dados.</p>
+  </div>
+  <div class="export-card" onclick="exportarCSV('compras')">
+    <div class="export-icon">&#x1F6D2;</div>
+    <h3>Exportar Compras (CSV)</h3>
+    <p>Baixe o hist&oacute;rico completo de compras e cashback gerado.</p>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: ALTERAR SENHA ============ -->
+<div class="page" id="page-senha">
+<div class="card" style="max-width:480px">
+  <div class="card-header"><span class="card-title">Alterar Senha</span></div>
+  <div class="form-group">
+    <label>Senha Atual</label>
+    <input type="password" id="senhaAtual" placeholder="Digite a senha atual">
+  </div>
+  <div class="form-group">
+    <label>Nova Senha</label>
+    <input type="password" id="senhaNova" placeholder="M&iacute;nimo 8 caracteres">
+  </div>
+  <div class="form-group">
+    <label>Confirmar Nova Senha</label>
+    <input type="password" id="senhaConfirm" placeholder="Repita a nova senha" onkeydown="if(event.key==='Enter')alterarSenha()">
+  </div>
+  <button class="btn btn-primary" style="width:auto" onclick="alterarSenha()">Alterar Senha</button>
+</div>
+</div>
+
+</div><!-- page-content -->
+</div><!-- main-content -->
+</div><!-- app -->
+
+<!-- ============ MODALS ============ -->
+
+<!-- Modal Confirmar Compra -->
+<div class="modal-overlay" id="modalConfirmarCompra">
+<div class="modal">
+  <h3>Confirmar Compra</h3>
+  <div id="modalCompraBody"></div>
+  <div style="display:flex;gap:12px;margin-top:20px">
+    <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modalConfirmarCompra')">Cancelar</button>
+    <button class="btn btn-primary" style="flex:1" onclick="executarCompra()">Confirmar</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal Resgate -->
+<div class="modal-overlay" id="modalResgate">
+<div class="modal">
+  <h3>Confirmar Resgate</h3>
+  <p id="modalResgateText"></p>
+  <div style="display:flex;gap:12px;margin-top:20px">
+    <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modalResgate')">Cancelar</button>
+    <button class="btn btn-gold" style="flex:1" onclick="confirmarResgate()">Confirmar</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal Estorno -->
+<div class="modal-overlay" id="modalEstorno">
+<div class="modal">
+  <h3>Estornar Compra</h3>
+  <p id="modalEstornoText"></p>
+  <div class="form-group" style="margin-top:16px">
+    <label>Motivo do Estorno</label>
+    <input type="text" id="estornoMotivo" placeholder="Ex: Cliente solicitou cancelamento">
+  </div>
+  <div style="display:flex;gap:12px;margin-top:12px">
+    <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modalEstorno')">Cancelar</button>
+    <button class="btn btn-danger" style="flex:1" onclick="confirmarEstorno()">Estornar</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal Excluir -->
+<div class="modal-overlay" id="modalExcluir">
+<div class="modal">
+  <h3>Excluir Cliente</h3>
+  <p id="modalExcluirText"></p>
+  <div style="display:flex;gap:12px;margin-top:20px">
+    <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modalExcluir')">Cancelar</button>
+    <button class="btn btn-danger" style="flex:1" onclick="confirmarExcluir()">Excluir</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal Editar Cliente -->
+<div class="modal-overlay" id="modalEditar">
+<div class="modal modal-lg">
+  <h3>Editar Cliente</h3>
+  <div class="form-row full">
+    <div class="form-group"><label>Nome Completo</label><input type="text" id="editNome"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>CPF</label><input type="text" id="editCPF" oninput="maskCPF(this)"></div>
+    <div class="form-group"><label>Telefone</label><input type="text" id="editTel" oninput="maskPhone(this)"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Email</label><input type="email" id="editEmail"></div>
+    <div class="form-group"><label>Data de Nascimento</label><input type="date" id="editNascimento"></div>
+  </div>
+  <div class="form-row full">
+    <div class="form-group"><label>Endere&ccedil;o</label><input type="text" id="editEndereco"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Cidade</label><input type="text" id="editCidade"></div>
+    <div class="form-group"><label>Estado</label>
+      <select id="editEstado">
+        <option value="">Selecione...</option>
+        <option value="AC">Acre</option><option value="AL">Alagoas</option><option value="AP">Amap&aacute;</option>
+        <option value="AM">Amazonas</option><option value="BA">Bahia</option><option value="CE">Cear&aacute;</option>
+        <option value="DF">Distrito Federal</option><option value="ES">Esp&iacute;rito Santo</option><option value="GO">Goi&aacute;s</option>
+        <option value="MA">Maranh&atilde;o</option><option value="MT">Mato Grosso</option><option value="MS">Mato Grosso do Sul</option>
+        <option value="MG">Minas Gerais</option><option value="PA">Par&aacute;</option><option value="PB">Para&iacute;ba</option>
+        <option value="PR">Paran&aacute;</option><option value="PE">Pernambuco</option><option value="PI">Piau&iacute;</option>
+        <option value="RJ">Rio de Janeiro</option><option value="RN">Rio Grande do Norte</option><option value="RS">Rio Grande do Sul</option>
+        <option value="RO">Rond&ocirc;nia</option><option value="RR">Roraima</option><option value="SC">Santa Catarina</option>
+        <option value="SP">S&atilde;o Paulo</option><option value="SE">Sergipe</option><option value="TO">Tocantins</option>
+      </select>
+    </div>
+    <div class="form-group"><label>CEP</label><input type="text" id="editCEP" oninput="maskCEP(this)"></div>
+  </div>
+  <div class="form-row full">
+    <div class="form-group"><label>Observa&ccedil;&otilde;es</label><textarea id="editObs" rows="3"></textarea></div>
+  </div>
+  <div style="display:flex;gap:12px;margin-top:12px">
+    <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modalEditar')">Cancelar</button>
+    <button class="btn btn-primary" style="flex:1" onclick="salvarEdicao()">Salvar</button>
+  </div>
+</div>
+</div>
+
+<!-- ============ JAVASCRIPT ============ -->
+<script>
+const MC = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const PAGE_TITLES = {
+  dashboard: 'Dashboard',
+  venda: 'Nova Compra',
+  cadastro: 'Cadastrar Cliente',
+  consulta: 'Consultar Cliente',
+  clientes: 'Todos os Clientes',
+  resgate: 'Resgatar Cr\u00e9dito',
+  config: 'Cashback Mensal',
+  relatorios: 'Relat\u00f3rios',
+  exportar: 'Exportar Dados',
+  senha: 'Alterar Senha'
+};
+
+/* ---- Session helpers ---- */
+function getUser() {
+  try { return JSON.parse(sessionStorage.getItem('club_user') || 'null'); } catch(e) { return null; }
+}
+function getClubId() {
+  const u = getUser();
+  return u ? u.club_id : null;
+}
+function isAdmin() {
+  const u = getUser();
+  return u && u.role === 'CLUB_ADMIN';
+}
+
+/* ---- API ---- */
+async function api(ep, data = null) {
+  const o = data
+    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }
+    : {};
+  try {
+    const r = await fetch('api/' + ep, o);
+    if (r.headers.get('content-type')?.includes('text/csv')) {
+      const b = await r.blob();
+      const u = URL.createObjectURL(b);
+      const a = document.createElement('a');
+      a.href = u;
+      a.download = r.headers.get('content-disposition')?.split('filename=')[1] || 'export.csv';
+      a.click();
+      return { sucesso: true };
+    }
+    return r.json();
+  } catch(e) {
+    return { sucesso: false, erro: 'Erro de conex\u00e3o' };
+  }
+}
+
+/* ---- Masks ---- */
+function maskCPF(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 11);
+  if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
+  else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+  else if (v.length > 3) v = v.replace(/(\d{3})(\d+)/, '$1.$2');
+  el.value = v;
+}
+function maskPhone(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 11);
+  if (v.length > 6) v = v.replace(/(\d{2})(\d{5})(\d+)/, '($1) $2-$3');
+  else if (v.length > 2) v = v.replace(/(\d{2})(\d+)/, '($1) $2');
+  el.value = v;
+}
+function maskMoney(el) { el.value = el.value.replace(/[^\d,]/g, ''); }
+function maskCEP(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 8);
+  if (v.length > 5) v = v.replace(/(\d{5})(\d+)/, '$1-$2');
+  el.value = v;
+}
+function parseM(s) { return parseFloat((s || '').replace(/\./g, '').replace(',', '.')) || 0; }
+
+/* ---- Formatters ---- */
+function fM(n) { return (n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+function fD(iso) {
+  if (!iso) return '\u2014';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+function fDS(iso) { return iso ? new Date(iso).toLocaleDateString('pt-BR') : '\u2014'; }
+function fC(c) { return (c || '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'); }
+function fP(t) { return (t || '').replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3'); }
+function cl(s) { return (s || '').replace(/\D/g, ''); }
+
+/* ---- UI helpers ---- */
+function toast(m, t = 'success') {
+  const c = document.getElementById('toastContainer');
+  const e = document.createElement('div');
+  e.className = 'toast toast-' + t;
+  e.textContent = m;
+  c.appendChild(e);
+  setTimeout(() => e.remove(), 3000);
+}
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+/* ---- Navigation ---- */
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('active');
+  const ni = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (ni) ni.classList.add('active');
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[page] || page;
+  closeSidebar();
+
+  // Page-specific loads
+  if (page === 'dashboard') updateDashboard();
+  if (page === 'clientes') { clientesPage = 1; renderClientes(); }
+  if (page === 'relatorios') renderRelatorios();
+  if (page === 'config') renderConfig();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mobileOverlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobileOverlay').classList.remove('show');
+}
+function updateDate() {
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('pt-BR', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+}
+
+/* ---- Login / Logout ---- */
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha = document.getElementById('loginPassword').value;
+  if (!email || !senha) {
+    showLoginError('Preencha email e senha.');
+    return;
+  }
+  const r = await api('auth.php', { acao: 'login', email: email, senha: senha });
+  if (r.sucesso) {
+    if (r.usuario && r.usuario.role === 'SUPER_ADMIN') {
+      showLoginError('Use o painel administrativo para acesso SUPER_ADMIN.');
+      return;
+    }
+    sessionStorage.setItem('club_user', JSON.stringify(r.usuario));
+    initApp();
+  } else {
+    showLoginError(r.erro || 'Credenciais inv\u00e1lidas.');
+  }
+}
+
+function showLoginError(msg) {
+  const e = document.getElementById('loginError');
+  e.textContent = msg;
+  e.style.display = 'block';
+  setTimeout(() => e.style.display = 'none', 4000);
+}
+
+function doLogout() {
+  api('auth.php', { acao: 'logout' });
+  sessionStorage.removeItem('club_user');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+
+function initApp() {
+  const u = getUser();
+  if (!u) return;
+
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  // Club name
+  document.getElementById('sidebarClubName').textContent = u.club_name || 'Clube';
+  document.title = (u.club_name || 'Clube SDM') + ' \u2014 Painel';
+
+  // Role badge
+  const badge = document.getElementById('sidebarRoleBadge');
+  if (u.role === 'CLUB_ADMIN') {
+    badge.textContent = 'ADMINISTRADOR';
+    badge.className = 'role-badge admin';
+  } else {
+    badge.textContent = 'OPERADOR';
+    badge.className = 'role-badge operator';
+  }
+
+  // Hide admin sections for operators
+  document.getElementById('navAdmin').style.display = isAdmin() ? '' : 'none';
+
+  updateDashboard();
+  updateDate();
+}
+
+/* ---- Dashboard ---- */
+async function updateDashboard() {
+  const s = await api('compras.php?acao=dashboard');
+  if (s.erro) return;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-icon" style="background:var(--blue-100);color:var(--blue-600)">\u{1F465}</div><div class="stat-value">${s.total_clientes}</div><div class="stat-label">Total Clientes</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--blue-100);color:var(--blue-600)">\u{1F6D2}</div><div class="stat-value">${s.total_compras}</div><div class="stat-label">Total Compras</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--gold-200);color:var(--gold-500)">\u{1F4B0}</div><div class="stat-value">${fM(s.total_vendas)}</div><div class="stat-label">Total Vendas</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--blue-100);color:var(--blue-600)">\u{1F4C5}</div><div class="stat-value">${fM(s.vendas_mes)}</div><div class="stat-label">Vendas do M\u00eas</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--green-100);color:var(--green-500)">\u{1F3F7}\uFE0F</div><div class="stat-value">${s.cashback_atual}%</div><div class="stat-label">Cashback Atual</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--gold-200);color:var(--gold-500)">\u{1F381}</div><div class="stat-value">${fM(s.total_cashback_gerado)}</div><div class="stat-label">Total Cashback Gerado</div></div>`;
+
+  const u = await api('compras.php?acao=ultimas&limite=10');
+  document.getElementById('recentPurchases').innerHTML = (u.compras || []).map(c =>
+    `<tr><td><strong>${c.nome}</strong></td><td>${fP(c.telefone)}</td><td><span class="badge badge-blue">${fM(+c.valor)}</span></td><td>${fM(+c.cashback_valor)} (${c.cashback_percentual}%)</td><td>${fD(c.data_compra)}</td></tr>`
+  ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">Nenhuma compra registrada</td></tr>';
+}
+
+/* ---- Nova Compra ---- */
+let vendaCl = null;
+async function buscarVenda() {
+  const termo = cl(document.getElementById('vendaTel').value);
+  if (!termo) { toast('Digite um telefone ou CPF', 'error'); return; }
+  const r = await api('clientes.php', { acao: 'buscar', termo: termo });
+  if (!r.sucesso) {
+    toast(r.erro, 'error');
+    document.getElementById('vendaInfo').classList.remove('show');
+    vendaCl = null;
+    return;
+  }
+  vendaCl = r.cliente;
+  document.getElementById('vendaData').innerHTML = `
+    <div class="customer-info-item"><label>Nome</label><span>${r.cliente.nome}</span></div>
+    <div class="customer-info-item"><label>CPF</label><span>${fC(r.cliente.cpf)}</span></div>
+    <div class="customer-info-item"><label>Telefone</label><span>${fP(r.cliente.telefone)}</span></div>
+    <div class="customer-info-item"><label>Total Compras</label><span>${fM(r.cliente.total_compras)}</span></div>
+    <div class="customer-info-item"><label>Cr\u00e9dito Dispon\u00edvel</label><span style="color:var(--gold-500)">${fM(r.cliente.credito_disponivel)}</span></div>`;
+  document.getElementById('vendaInfo').classList.add('show');
+  document.getElementById('vendaValor').value = '';
+  document.getElementById('vendaValor').focus();
+}
+
+async function confirmarCompra() {
+  if (!vendaCl) return;
+  const v = parseM(document.getElementById('vendaValor').value);
+  if (v < 0.01) { toast('Valor inv\u00e1lido!', 'error'); return; }
+  const p = await api('compras.php', { acao: 'preview', valor: v });
+  if (!p.sucesso) { toast(p.erro, 'error'); return; }
+  document.getElementById('modalCompraBody').innerHTML = `
+    <p>Cliente: <strong>${vendaCl.nome}</strong></p>
+    <div class="preview-box">
+      <div class="pv-lbl">Valor da Compra</div>
+      <div class="pv-val">${fM(v)}</div>
+    </div>
+    <div class="preview-box" style="background:var(--gold-200);border-color:var(--gold-500)">
+      <div class="pv-lbl">Cashback que ser\u00e1 gerado</div>
+      <div class="pv-val" style="color:var(--gold-500)">${fM(p.cashback_valor)} (${p.cashback_percentual}%)</div>
+    </div>`;
+  openModal('modalConfirmarCompra');
+}
+
+async function executarCompra() {
+  closeModal('modalConfirmarCompra');
+  const v = parseM(document.getElementById('vendaValor').value);
+  const r = await api('compras.php', { acao: 'registrar', telefone: vendaCl.telefone, valor: v });
+  if (r.sucesso) {
+    toast(`Compra de ${fM(v)} registrada! Cashback: ${fM(r.compra.cashback_valor)}`);
+    document.getElementById('vendaTel').value = '';
+    document.getElementById('vendaValor').value = '';
+    document.getElementById('vendaInfo').classList.remove('show');
+    vendaCl = null;
+  } else {
+    toast(r.erro, 'error');
+  }
+}
+
+/* ---- Cadastrar Cliente ---- */
+async function cadastrarCliente() {
+  const nome = document.getElementById('cadNome').value.trim();
+  const cpf = document.getElementById('cadCPF').value;
+  const telefone = document.getElementById('cadTel').value;
+  const email = document.getElementById('cadEmail').value.trim();
+  const nascimento = document.getElementById('cadNascimento').value;
+  const endereco = document.getElementById('cadEndereco').value.trim();
+  const cidade = document.getElementById('cadCidade').value.trim();
+  const estado = document.getElementById('cadEstado').value;
+  const cep = document.getElementById('cadCEP').value;
+  const observacoes = document.getElementById('cadObs').value.trim();
+
+  if (!nome) { toast('Nome \u00e9 obrigat\u00f3rio!', 'error'); return; }
+  if (!telefone || cl(telefone).length < 10) { toast('Telefone inv\u00e1lido!', 'error'); return; }
+
+  const r = await api('clientes.php', {
+    acao: 'cadastrar',
+    nome, cpf, telefone, email, nascimento,
+    endereco, cidade, estado, cep, observacoes
+  });
+
+  if (r.sucesso) {
+    toast(r.mensagem || 'Cliente cadastrado com sucesso!');
+    ['cadNome','cadCPF','cadTel','cadEmail','cadNascimento','cadEndereco','cadCidade','cadCEP','cadObs'].forEach(
+      x => document.getElementById(x).value = ''
+    );
+    document.getElementById('cadEstado').value = '';
+  } else {
+    toast(r.erro, 'error');
+  }
+}
+
+/* ---- Consultar Cliente ---- */
+let consultaCl = null;
+async function consultarCliente() {
+  const termo = document.getElementById('consultaBusca').value.trim();
+  if (!termo) { toast('Digite um termo de busca', 'error'); return; }
+  const r = await api('clientes.php', { acao: 'buscar', termo: cl(termo) || termo });
+  if (!r.sucesso) {
+    toast(r.erro, 'error');
+    document.getElementById('consultaResult').classList.remove('show');
+    return;
+  }
+  consultaCl = r.cliente;
+  const c = r.cliente;
+
+  document.getElementById('consultaData').innerHTML = `
+    <div class="customer-info-item"><label>Nome</label><span>${c.nome}</span></div>
+    <div class="customer-info-item"><label>CPF</label><span>${fC(c.cpf)}</span></div>
+    <div class="customer-info-item"><label>Telefone</label><span>${fP(c.telefone)}</span></div>
+    <div class="customer-info-item"><label>Email</label><span>${c.email || '\u2014'}</span></div>
+    <div class="customer-info-item"><label>Nascimento</label><span>${fDS(c.nascimento)}</span></div>
+    <div class="customer-info-item"><label>Desde</label><span>${fDS(c.data_cadastro)}</span></div>`;
+
+  const exp = c.expirado ? '<br><span style="color:var(--red-500);font-size:11px">CR\u00c9DITOS EXPIRADOS</span>' : '';
+  document.getElementById('consultaPoints').innerHTML = `
+    <div class="points-circle">
+      <span class="pts-value">${fM(c.credito_disponivel).replace('R$','').trim()}</span>
+      <span class="pts-label">cr\u00e9dito</span>
+    </div>
+    <div>
+      <div style="font-size:14px;color:var(--text-secondary)">Total em Compras</div>
+      <div style="font-size:24px;font-weight:700;color:var(--blue-900)">${fM(c.total_compras)}</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:4px">Cashback: ${fM(c.cashback_total)} | Resgatado: ${fM(c.total_resgatado)}${exp}</div>
+    </div>`;
+
+  // Purchase history
+  const h = await api('compras.php?acao=historico&cliente_id=' + c.id);
+  let rows = (h.compras || []).map(x => {
+    const est = x.estornada ? 'estornada' : '';
+    return `<tr class="${est}">
+      <td>${fD(x.data_compra)}</td>
+      <td>${fM(x.valor)}</td>
+      <td><span class="badge badge-blue">${fM(x.cashback_valor)} (${x.cashback_percentual}%)</span></td>
+      <td>${x.estornada ? '<span class="badge badge-red">Estornada</span>' : '<span class="badge badge-green">OK</span>'}</td>
+      <td>${x.estornada ? '\u2014' : `<button class="btn btn-danger btn-xs" onclick="estornarCompra(${x.id},${x.valor})">Estornar</button>`}</td>
+    </tr>`;
+  }).join('');
+  if (h.compras?.length) {
+    rows += `<tr class="total-row"><td><strong>TOTAL</strong></td><td><strong>${fM(h.total_valor)}</strong></td><td><strong>${fM(h.total_cashback)}</strong></td><td></td><td></td></tr>`;
+  }
+  document.getElementById('consultaHistorico').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhuma compra</td></tr>';
+
+  // Redemption history
+  const rg = await api('resgates.php?acao=historico&cliente_id=' + c.id);
+  document.getElementById('consultaResgateList').innerHTML = (rg.resgates || []).map(x =>
+    `<tr><td>${fD(x.data_resgate)}</td><td><span class="badge badge-gold">${fM(+x.valor)}</span></td></tr>`
+  ).join('') || '<tr><td colspan="2" style="text-align:center;color:var(--text-muted)">Nenhum resgate</td></tr>';
+
+  document.getElementById('consultaResult').classList.add('show');
+}
+
+/* ---- Estorno ---- */
+let estornoId = 0, estornoVal = 0;
+function estornarCompra(id, val) {
+  estornoId = id;
+  estornoVal = val;
+  document.getElementById('modalEstornoText').innerHTML = `Deseja estornar a compra de <strong>${fM(val)}</strong>? O cashback correspondente ser\u00e1 removido.`;
+  document.getElementById('estornoMotivo').value = '';
+  openModal('modalEstorno');
+}
+
+async function confirmarEstorno() {
+  const r = await api('compras.php', {
+    acao: 'estornar',
+    compra_id: estornoId,
+    motivo: document.getElementById('estornoMotivo').value || 'Estorno administrativo'
+  });
+  closeModal('modalEstorno');
+  if (r.sucesso) {
+    toast('Compra estornada!');
+    consultarCliente();
+  } else {
+    toast(r.erro, 'error');
+  }
+}
+
+/* ---- Resgatar Credito ---- */
+let resgateCl = null, resgateValP = 0;
+
+async function buscarResgate() {
+  const termo = cl(document.getElementById('resgateTel').value);
+  if (!termo) { toast('Digite um telefone ou CPF', 'error'); return; }
+  const r = await api('clientes.php', { acao: 'buscar', termo: termo });
+  if (!r.sucesso) {
+    toast(r.erro, 'error');
+    document.getElementById('resgateInfo').classList.remove('show');
+    return;
+  }
+  resgateCl = r.cliente;
+  document.getElementById('resgateData').innerHTML = `
+    <div class="customer-info-item"><label>Nome</label><span>${r.cliente.nome}</span></div>
+    <div class="customer-info-item"><label>CPF</label><span>${fC(r.cliente.cpf)}</span></div>
+    <div class="customer-info-item"><label>Telefone</label><span>${fP(r.cliente.telefone)}</span></div>`;
+  document.getElementById('resgatePoints').innerHTML = `
+    <div class="points-circle">
+      <span class="pts-value">${fM(r.cliente.credito_disponivel).replace('R$','').trim()}</span>
+      <span class="pts-label">dispon\u00edvel</span>
+    </div>
+    <div>
+      <div style="font-size:14px;color:var(--text-secondary)">Cr\u00e9dito Dispon\u00edvel</div>
+      <div style="font-size:24px;font-weight:700;color:var(--gold-500)">${fM(r.cliente.credito_disponivel)}</div>
+    </div>`;
+  document.getElementById('resgateInfo').classList.add('show');
+  document.getElementById('resgateValor').value = '';
+}
+
+function realizarResgate() {
+  if (!resgateCl) return;
+  resgateValP = parseM(document.getElementById('resgateValor').value);
+  if (resgateValP <= 0) { toast('Valor inv\u00e1lido!', 'error'); return; }
+  if (resgateValP > resgateCl.credito_disponivel) { toast('Valor maior que o cr\u00e9dito dispon\u00edvel!', 'error'); return; }
+  document.getElementById('modalResgateText').innerHTML = `Confirma resgate de <strong>${fM(resgateValP)}</strong> para <strong>${resgateCl.nome}</strong>?`;
+  openModal('modalResgate');
+}
+
+async function confirmarResgate() {
+  const r = await api('resgates.php', { acao: 'resgatar', cliente_id: resgateCl.id, valor: resgateValP });
+  closeModal('modalResgate');
+  if (r.sucesso) {
+    toast(`Resgate de ${fM(resgateValP)} realizado!`);
+    document.getElementById('resgateTel').value = '';
+    document.getElementById('resgateValor').value = '';
+    document.getElementById('resgateInfo').classList.remove('show');
+    resgateCl = null;
+  } else {
+    toast(r.erro, 'error');
+  }
+}
+
+/* ---- Todos os Clientes ---- */
+let filtroTO;
+let clientesPage = 1;
+const CLIENTES_PER_PAGE = 50;
+
+async function renderClientes(busca = '') {
+  const b = busca || document.getElementById('clientesSearch').value || '';
+  const r = await api('clientes.php?acao=listar&busca=' + encodeURIComponent(b) + '&pagina=' + clientesPage + '&limite=' + CLIENTES_PER_PAGE);
+  const total = r.total || 0;
+  document.getElementById('totalBadge').textContent = total + ' clientes';
+
+  document.getElementById('clientesList').innerHTML = (r.clientes || []).map(c =>
+    `<tr>
+      <td><strong>${c.nome}</strong></td>
+      <td>${fC(c.cpf)}</td>
+      <td>${fP(c.telefone)}</td>
+      <td>${fM(c.total_compras)}</td>
+      <td><span class="badge badge-gold">${fM(c.credito_disponivel)}</span></td>
+      <td>
+        <button class="btn btn-secondary btn-xs" onclick="consultarDireto('${c.telefone}')" style="margin:2px">Ver</button>
+        <button class="btn btn-secondary btn-xs" onclick="editarCliente(${c.id})" style="margin:2px">Editar</button>
+        <button class="btn btn-danger btn-xs" onclick="excluirCliente(${c.id},'${c.nome.replace(/'/g, "\\'")}')" style="margin:2px">Excluir</button>
+      </td>
+    </tr>`
+  ).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">Nenhum cliente</td></tr>';
+
+  // Pagination
+  const totalPages = Math.ceil(total / CLIENTES_PER_PAGE);
+  let pagHtml = '';
+  if (totalPages > 1) {
+    pagHtml += `<button ${clientesPage <= 1 ? 'disabled' : ''} onclick="clientesPage--;renderClientes()">&laquo; Anterior</button>`;
+    for (let i = 1; i <= totalPages && i <= 10; i++) {
+      pagHtml += `<button class="${i === clientesPage ? 'active' : ''}" onclick="clientesPage=${i};renderClientes()">${i}</button>`;
+    }
+    if (totalPages > 10) pagHtml += `<span style="color:var(--text-muted)">...</span>`;
+    pagHtml += `<button ${clientesPage >= totalPages ? 'disabled' : ''} onclick="clientesPage++;renderClientes()">Pr\u00f3ximo &raquo;</button>`;
+  }
+  document.getElementById('clientesPagination').innerHTML = pagHtml;
+}
+
+function filtrarClientes() {
+  clearTimeout(filtroTO);
+  filtroTO = setTimeout(() => { clientesPage = 1; renderClientes(); }, 300);
+}
+
+function consultarDireto(t) {
+  goTo('consulta');
+  document.getElementById('consultaBusca').value = t;
+  consultarCliente();
+}
+
+/* ---- Editar Cliente ---- */
+let editId = 0;
+
+async function editarCliente(id) {
+  editId = id;
+  // Fetch full client data
+  const r = await api('clientes.php', { acao: 'buscar_por_id', id: id });
+  if (!r.sucesso) { toast(r.erro || 'Erro ao carregar cliente', 'error'); return; }
+  const c = r.cliente;
+  document.getElementById('editNome').value = c.nome || '';
+  document.getElementById('editCPF').value = fC(c.cpf) || '';
+  document.getElementById('editTel').value = fP(c.telefone) || '';
+  document.getElementById('editEmail').value = c.email || '';
+  document.getElementById('editNascimento').value = c.nascimento || '';
+  document.getElementById('editEndereco').value = c.endereco || '';
+  document.getElementById('editCidade').value = c.cidade || '';
+  document.getElementById('editEstado').value = c.estado || '';
+  document.getElementById('editCEP').value = c.cep || '';
+  document.getElementById('editObs').value = c.observacoes || '';
+  openModal('modalEditar');
+}
+
+async function salvarEdicao() {
+  const r = await api('clientes.php', {
+    acao: 'editar',
+    id: editId,
+    nome: document.getElementById('editNome').value.trim(),
+    cpf: document.getElementById('editCPF').value,
+    telefone: document.getElementById('editTel').value,
+    email: document.getElementById('editEmail').value.trim(),
+    nascimento: document.getElementById('editNascimento').value,
+    endereco: document.getElementById('editEndereco').value.trim(),
+    cidade: document.getElementById('editCidade').value.trim(),
+    estado: document.getElementById('editEstado').value,
+    cep: document.getElementById('editCEP').value,
+    observacoes: document.getElementById('editObs').value.trim()
+  });
+  closeModal('modalEditar');
+  if (r.sucesso) {
+    toast(r.mensagem || 'Cliente atualizado!');
+    renderClientes();
+  } else {
+    toast(r.erro, 'error');
+  }
+}
+
+/* ---- Excluir Cliente ---- */
+let excluirId = 0;
+
+function excluirCliente(id, nome) {
+  excluirId = id;
+  document.getElementById('modalExcluirText').innerHTML = `Tem certeza que deseja excluir <strong>${nome}</strong>? Esta a\u00e7\u00e3o n\u00e3o pode ser desfeita.`;
+  openModal('modalExcluir');
+}
+
+async function confirmarExcluir() {
+  const r = await api('clientes.php', { acao: 'excluir', id: excluirId });
+  closeModal('modalExcluir');
+  if (r.sucesso) {
+    toast('Cliente exclu\u00eddo.');
+    renderClientes();
+  } else {
+    toast(r.erro || 'Erro ao excluir', 'error');
+  }
+}
+
+/* ---- Exportar ---- */
+function exportarCSV(tipo) {
+  window.open('api/compras.php?acao=exportar_' + tipo, '_blank');
+}
+
+/* ---- Relatorios ---- */
+async function renderRelatorios() {
+  const ano = new Date().getFullYear();
+  document.getElementById('chartAno').textContent = ano;
+
+  const r = await api('compras.php?acao=relatorio_mensal&ano=' + ano);
+  const maxV = Math.max(...(r.meses || []).map(m => m.total_vendas), 1);
+  document.getElementById('chartBars').innerHTML = (r.meses || []).map(m => {
+    const h = Math.max(4, Math.round((m.total_vendas / maxV) * 100));
+    return `<div class="chart-bar">
+      <div class="bar-value">${m.total_vendas > 0 ? fM(m.total_vendas) : ''}</div>
+      <div class="bar" style="height:${h}%" title="${MC[m.mes - 1]}: ${fM(m.total_vendas)}"></div>
+      <div class="bar-label">${MC[m.mes - 1]}</div>
+    </div>`;
+  }).join('');
+
+  const rk = await api('compras.php?acao=ranking_clientes&limite=20');
+  document.getElementById('rankingList').innerHTML = (rk.ranking || []).map((c, i) =>
+    `<tr><td><strong>${i + 1}\u00ba</strong></td><td>${c.nome}</td><td>${fP(c.telefone)}</td><td>${c.num_compras}</td><td><span class="badge badge-blue">${fM(+c.total_compras)}</span></td></tr>`
+  ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhum dado</td></tr>';
+}
+
+/* ---- Config (Cashback Mensal) ---- */
+async function renderConfig() {
+  const ano = new Date().getFullYear();
+  document.getElementById('configAno').textContent = ano;
+  const r = await api('config.php?acao=listar&ano=' + ano);
+  const ma = new Date().getMonth();
+  document.getElementById('configGrid').innerHTML = (r.meses || []).map((m, i) =>
+    `<div class="config-month${i === ma ? ' active' : ''}">
+      <label>${MC[i]}</label>
+      <input type="number" id="cb_${i}" value="${m.percentual}" min="0" max="100" step="0.5">
+      <div class="suffix">%</div>
+    </div>`
+  ).join('');
+}
+
+async function salvarConfig() {
+  const ano = new Date().getFullYear();
+  const ms = [];
+  for (let i = 0; i < 12; i++) ms.push(parseFloat(document.getElementById('cb_' + i).value) || 0);
+  const r = await api('config.php', { acao: 'salvar', ano, meses: ms });
+  if (r.sucesso) {
+    document.getElementById('configStatus').textContent = '\u2713 Salvo!';
+    setTimeout(() => document.getElementById('configStatus').textContent = '', 3000);
+    toast('Configura\u00e7\u00f5es salvas!');
+  } else {
+    toast(r.erro, 'error');
+  }
+}
+
+/* ---- Alterar Senha ---- */
+async function alterarSenha() {
+  const atual = document.getElementById('senhaAtual').value;
+  const nova = document.getElementById('senhaNova').value;
+  const confirma = document.getElementById('senhaConfirm').value;
+
+  if (!atual) { toast('Digite a senha atual!', 'error'); return; }
+  if (!nova || nova.length < 8) { toast('A nova senha deve ter no m\u00ednimo 8 caracteres!', 'error'); return; }
+  if (nova !== confirma) { toast('As senhas n\u00e3o coincidem!', 'error'); return; }
+
+  const r = await api('auth.php', { acao: 'alterar_senha', senha_atual: atual, nova_senha: nova });
+  if (r.sucesso) {
+    toast('Senha alterada com sucesso!');
+    ['senhaAtual', 'senhaNova', 'senhaConfirm'].forEach(x => document.getElementById(x).value = '');
+  } else {
+    toast(r.erro, 'error');
+  }
+}
+
+/* ---- Init on load ---- */
+(function() {
+  const u = getUser();
+  if (u) {
+    initApp();
+  }
+})();
+</script>
+</body>
+</html>
