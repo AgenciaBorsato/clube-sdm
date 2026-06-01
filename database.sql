@@ -126,6 +126,21 @@ CREATE TABLE IF NOT EXISTS configuracoes (
   UNIQUE (club_id, chave)
 );
 
+-- Campanhas de mensagens (disparos em massa por clube)
+CREATE TABLE IF NOT EXISTS campanhas (
+  id SERIAL PRIMARY KEY,
+  club_id INT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+  segmento VARCHAR(50),
+  mensagem TEXT,
+  total INT DEFAULT 0,
+  enviados INT DEFAULT 0,
+  falhas INT DEFAULT 0,
+  criado_por INT REFERENCES users(id),
+  criado_em TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_campanhas_club ON campanhas(club_id);
+
 -- Log de auditoria
 CREATE TABLE IF NOT EXISTS audit_log (
   id SERIAL PRIMARY KEY,

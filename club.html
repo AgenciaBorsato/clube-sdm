@@ -225,6 +225,8 @@ table td{padding:12px 14px;font-size:13px;border-bottom:1px solid #eef3f0}table 
 <div class="nav-item" onclick="goTo('resgate')" data-page="resgate"><span class="nav-icon">&#x1F381;</span> Resgatar Cr&eacute;dito</div>
 
 <div id="navAdmin">
+<div class="nav-section">Relacionamento</div>
+<div class="nav-item" onclick="goTo('mensagens')" data-page="mensagens"><span class="nav-icon">&#x1F4AC;</span> Mensagens</div>
 <div class="nav-section">Configura&ccedil;&otilde;es</div>
 <div class="nav-item" onclick="goTo('config')" data-page="config"><span class="nav-icon">&#x2699;&#xFE0F;</span> Cashback Mensal</div>
 <div class="nav-item" onclick="goTo('relatorios')" data-page="relatorios"><span class="nav-icon">&#x1F4C8;</span> Relat&oacute;rios</div>
@@ -455,6 +457,45 @@ table td{padding:12px 14px;font-size:13px;border-bottom:1px solid #eef3f0}table 
 </div>
 </div>
 
+<!-- ============ PAGE: MENSAGENS ============ -->
+<div class="page" id="page-mensagens">
+  <div class="card" style="margin-bottom:16px">
+    <h3 style="margin:0 0 4px">Disparo de mensagens no WhatsApp</h3>
+    <p style="color:var(--text-muted);font-size:13px;margin:0 0 16px">Escolha um p&uacute;blico, monte a mensagem e envie. As mensagens saem do WhatsApp do clube. Vari&aacute;veis: <code>{nome}</code> <code>{saldo}</code> <code>{clube}</code></p>
+
+    <label style="font-weight:700;font-size:13px;color:var(--text-secondary)">1. P&uacute;blico</label>
+    <div id="msgSegmentos" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0 18px">
+      <!-- cards de segmento -->
+    </div>
+
+    <label style="font-weight:700;font-size:13px;color:var(--text-secondary)">2. Modelo (opcional)</label>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px">
+      <button class="btn btn-secondary btn-xs" onclick="modeloMsg('vencendo')">Cashback vencendo</button>
+      <button class="btn btn-secondary btn-xs" onclick="modeloMsg('oferta')">Oferta / Promo&ccedil;&atilde;o</button>
+      <button class="btn btn-secondary btn-xs" onclick="modeloMsg('aniversario')">Anivers&aacute;rio</button>
+      <button class="btn btn-secondary btn-xs" onclick="modeloMsg('saudade')">Sentimos sua falta</button>
+      <button class="btn btn-secondary btn-xs" onclick="modeloMsg('saldo')">Aviso de saldo</button>
+    </div>
+
+    <label style="font-weight:700;font-size:13px;color:var(--text-secondary)">3. Mensagem</label>
+    <textarea id="msgTexto" rows="5" placeholder="Escreva a mensagem... ex: Oi {nome}! Voc&ecirc; tem {saldo} de cashback na {clube}." style="width:100%;margin-top:8px"></textarea>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap">
+      <span id="msgResumo" style="color:var(--text-secondary);font-size:14px"></span>
+      <button class="btn btn-primary" id="btnEnviarMsg" onclick="confirmarDisparo()">Enviar mensagem</button>
+    </div>
+    <p style="color:var(--text-muted);font-size:12px;margin-top:10px">&#x26A0;&#xFE0F; Envie s&oacute; para quem tem rela&ccedil;&atilde;o com o clube. Disparos em massa para n&uacute;meros aleat&oacute;rios podem bloquear seu WhatsApp.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 12px">Hist&oacute;rico de campanhas</h3>
+    <div style="overflow-x:auto">
+      <table class="table"><thead><tr><th>Data</th><th>P&uacute;blico</th><th>Mensagem</th><th>Enviadas</th><th>Falhas</th></tr></thead>
+      <tbody id="msgHistorico"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhuma campanha ainda</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+
 <!-- ============ PAGE: ALTERAR SENHA ============ -->
 <div class="page" id="page-senha">
 <div class="card" style="max-width:480px">
@@ -501,6 +542,18 @@ table td{padding:12px 14px;font-size:13px;border-bottom:1px solid #eef3f0}table 
   <div style="display:flex;gap:12px;margin-top:20px">
     <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modalResgate')">Cancelar</button>
     <button class="btn btn-gold" style="flex:1" onclick="confirmarResgate()">Confirmar</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal Disparo de Mensagens -->
+<div class="modal-overlay" id="modalDisparo">
+<div class="modal">
+  <h3>Confirmar disparo</h3>
+  <p id="modalDisparoText"></p>
+  <div style="display:flex;gap:12px;margin-top:20px">
+    <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modalDisparo')">Cancelar</button>
+    <button class="btn btn-primary" style="flex:1" id="btnConfirmaDisparo" onclick="executarDisparo()">Enviar agora</button>
   </div>
 </div>
 </div>
@@ -592,6 +645,7 @@ const PAGE_TITLES = {
   config: 'Cashback Mensal',
   relatorios: 'Relat\u00f3rios',
   exportar: 'Exportar Dados',
+  mensagens: 'Mensagens',
   senha: 'Alterar Senha'
 };
 
@@ -692,6 +746,7 @@ function goTo(page) {
   if (page === 'clientes') { clientesPage = 1; renderClientes(); }
   if (page === 'relatorios') renderRelatorios();
   if (page === 'config') renderConfig();
+  if (page === 'mensagens') renderMensagens();
 }
 
 function toggleSidebar() {
@@ -1207,6 +1262,93 @@ async function salvarConfig() {
     toast('Configura\u00e7\u00f5es salvas!');
   } else {
     toast(r.erro, 'error');
+  }
+}
+
+/* ---- Mensagens / Relacionamento ---- */
+const SEG_INFO = {
+  todos:            { label: 'Todos os clientes', icon: '\u{1F465}' },
+  com_saldo:        { label: 'Com cashback', icon: '\u{1F4B0}' },
+  cashback_vencendo:{ label: 'Cashback vencendo', icon: '⏳' },
+  aniversariantes:  { label: 'Aniversariantes do mês', icon: '\u{1F382}' },
+  inativos:         { label: 'Inativos (60+ dias)', icon: '\u{1F4A4}' }
+};
+const MODELOS_MSG = {
+  vencendo: 'Oi {nome}! Seu cashback de {saldo} na {clube} está perto de vencer. Aproveite antes que expire! \u{1F4B8}',
+  oferta: '{nome}, novidade na {clube}! [escreva sua oferta aqui] \u{1F389}',
+  aniversario: 'Feliz aniversário, {nome}! \u{1F382} A {clube} preparou um mimo pra você. Vem comemorar com a gente!',
+  saudade: 'Oi {nome}, faz tempo que não te vemos na {clube}! Você tem {saldo} de cashback te esperando. \u{1F49A}',
+  saldo: '{nome}, você tem {saldo} de cashback disponível na {clube}. Use na sua próxima compra! \u{1F4B0}'
+};
+let msgSegSel = null;
+let msgContagens = {};
+
+async function renderMensagens() {
+  msgSegSel = null;
+  document.getElementById('msgTexto').value = '';
+  const r = await api('mensagens.php?acao=segmentos');
+  msgContagens = r.segmentos || {};
+  document.getElementById('msgSegmentos').innerHTML = Object.keys(SEG_INFO).map(k => {
+    const n = msgContagens[k] || 0;
+    return `<div class="seg-card" id="seg_${k}" onclick="selecionarSegmento('${k}')" style="border:2px solid var(--border,#e5e7eb);border-radius:12px;padding:12px;cursor:pointer;text-align:center;transition:.15s">
+      <div style="font-size:22px">${SEG_INFO[k].icon}</div>
+      <div style="font-weight:700;font-size:22px;color:var(--blue-900,#0a2540)">${n}</div>
+      <div style="font-size:12px;color:var(--text-secondary)">${SEG_INFO[k].label}</div>
+    </div>`;
+  }).join('');
+  atualizarResumo();
+  // historico
+  const h = await api('mensagens.php?acao=historico');
+  const camp = h.campanhas || [];
+  document.getElementById('msgHistorico').innerHTML = camp.length ? camp.map(c =>
+    `<tr><td>${fD(c.criado_em)}</td><td>${(SEG_INFO[c.segmento]||{}).label||c.segmento}</td><td style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${(c.mensagem||'').replace(/"/g,'&quot;')}">${c.mensagem||''}</td><td><span class="badge badge-green">${c.enviados}</span></td><td>${c.falhas>0?'<span class="badge badge-red">'+c.falhas+'</span>':'0'}</td></tr>`
+  ).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhuma campanha ainda</td></tr>';
+}
+
+function selecionarSegmento(k) {
+  msgSegSel = k;
+  Object.keys(SEG_INFO).forEach(s => {
+    const el = document.getElementById('seg_' + s);
+    if (el) { el.style.borderColor = s === k ? 'var(--blue-600,#2196f3)' : 'var(--border,#e5e7eb)'; el.style.background = s === k ? 'var(--blue-50,#eaf4ff)' : ''; }
+  });
+  atualizarResumo();
+}
+
+function modeloMsg(tipo) {
+  document.getElementById('msgTexto').value = MODELOS_MSG[tipo] || '';
+}
+
+function atualizarResumo() {
+  const n = msgSegSel ? (msgContagens[msgSegSel] || 0) : 0;
+  const el = document.getElementById('msgResumo');
+  el.textContent = msgSegSel ? `Enviar para ${n} cliente(s) — ${(SEG_INFO[msgSegSel]||{}).label}` : 'Selecione um público acima';
+}
+
+function confirmarDisparo() {
+  const msg = document.getElementById('msgTexto').value.trim();
+  if (!msgSegSel) { toast('Selecione um público', 'error'); return; }
+  if (!msg) { toast('Escreva a mensagem', 'error'); return; }
+  const n = msgContagens[msgSegSel] || 0;
+  if (n === 0) { toast('Nenhum cliente nesse público', 'error'); return; }
+  document.getElementById('modalDisparoText').innerHTML = `Enviar esta mensagem para <strong>${n} cliente(s)</strong> (${(SEG_INFO[msgSegSel]||{}).label})?<br><br><em style="color:var(--text-secondary)">"${msg.replace(/</g,'&lt;')}"</em>`;
+  openModal('modalDisparo');
+}
+
+async function executarDisparo() {
+  const btn = document.getElementById('btnConfirmaDisparo');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  const msg = document.getElementById('msgTexto').value.trim();
+  const r = await api('mensagens.php', { acao: 'enviar', segmento: msgSegSel, mensagem: msg });
+  btn.disabled = false; btn.textContent = 'Enviar agora';
+  closeModal('modalDisparo');
+  if (r.sucesso) {
+    let t = `${r.enviados} mensagem(ns) enviada(s)!`;
+    if (r.falhas > 0) t += ` ${r.falhas} falha(s).`;
+    if (r.truncado) t += ' (limite de 200 por disparo)';
+    toast(t);
+    renderMensagens();
+  } else {
+    toast(r.erro || 'Erro ao enviar', 'error');
   }
 }
 
