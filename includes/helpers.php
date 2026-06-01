@@ -30,9 +30,10 @@ function getExpiracaoMeses($clubId) {
  * URL e API key vem de variaveis de ambiente (EVOLUTION_API_URL, EVOLUTION_API_KEY).
  * Falha silenciosamente (retorna false) — nunca deve travar o fluxo de venda.
  */
-function enviarWhatsAppEvolution($instance, $telefone, $mensagem) {
+function enviarWhatsAppEvolution($instance, $telefone, $mensagem, $token = null) {
     $base = getenv('EVOLUTION_API_URL');
-    $key = getenv('EVOLUTION_API_KEY');
+    // Prioriza o token do proprio clube (1 instancia por clube); fallback p/ env global
+    $key = ($token !== null && trim((string) $token) !== '') ? $token : getenv('EVOLUTION_API_KEY');
     if (!$base || !$key || !$instance || !$telefone || !$mensagem) return false;
 
     $numero = preg_replace('/\D/', '', $telefone);

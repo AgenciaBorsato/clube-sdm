@@ -152,8 +152,8 @@ switch ($acao) {
         }
 
         $stmt = $db->prepare("
-            INSERT INTO clubs (nome, slug, segmento, endereco, cidade, estado, telefone, email, cor_primaria, cor_secundaria, expiracao_meses, whatsapp_enabled, evolution_instance, whatsapp_template)
-            VALUES (:nome, :slug, :segmento, :endereco, :cidade, :estado, :telefone, :email, :cor_primaria, :cor_secundaria, :expiracao_meses, :whatsapp_enabled, :evolution_instance, :whatsapp_template)
+            INSERT INTO clubs (nome, slug, segmento, endereco, cidade, estado, telefone, email, cor_primaria, cor_secundaria, expiracao_meses, whatsapp_enabled, evolution_instance, evolution_token, whatsapp_template)
+            VALUES (:nome, :slug, :segmento, :endereco, :cidade, :estado, :telefone, :email, :cor_primaria, :cor_secundaria, :expiracao_meses, :whatsapp_enabled, :evolution_instance, :evolution_token, :whatsapp_template)
             RETURNING id
         ");
         $stmt->execute([
@@ -170,6 +170,7 @@ switch ($acao) {
             ':expiracao_meses' => $input['expiracao_meses'] ?? 3,
             ':whatsapp_enabled' => !empty($input['whatsapp_enabled']) ? 'TRUE' : 'FALSE',
             ':evolution_instance' => $input['evolution_instance'] ?? null,
+            ':evolution_token' => $input['evolution_token'] ?? null,
             ':whatsapp_template' => $input['whatsapp_template'] ?? null,
         ]);
         $id = (int) $stmt->fetchColumn();
@@ -185,7 +186,7 @@ switch ($acao) {
         $id = (int) ($input['id'] ?? 0);
         if (!$id) jsonResponse(['erro' => 'ID do clube obrigatorio'], 400);
 
-        $editaveis = ['nome', 'slug', 'segmento', 'endereco', 'cidade', 'estado', 'telefone', 'email', 'cor_primaria', 'cor_secundaria', 'expiracao_meses', 'evolution_instance', 'whatsapp_template'];
+        $editaveis = ['nome', 'slug', 'segmento', 'endereco', 'cidade', 'estado', 'telefone', 'email', 'cor_primaria', 'cor_secundaria', 'expiracao_meses', 'evolution_instance', 'evolution_token', 'whatsapp_template'];
         $campos = [];
         $params = [':id' => $id];
         foreach ($editaveis as $campo) {

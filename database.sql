@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS clubs (
   expiracao_meses INT NOT NULL DEFAULT 3,
   whatsapp_enabled BOOLEAN DEFAULT FALSE,
   evolution_instance VARCHAR(120),
+  evolution_token VARCHAR(120),
   whatsapp_template TEXT,
   ativo BOOLEAN DEFAULT TRUE,
   criado_em TIMESTAMP DEFAULT NOW(),

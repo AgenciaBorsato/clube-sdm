@@ -374,7 +374,8 @@ table tr.clickable{cursor:pointer}table tr.clickable:hover{background:var(--blue
     </label>
   </div>
   <div class="form-row">
-    <div class="form-group"><label>Instancia Evolution (nome)</label><input type="text" id="clubeEvolutionInstance" placeholder="ex: drogaria-sao-bento"></div>
+    <div class="form-group"><label>Instancia Evolution (nome)</label><input type="text" id="clubeEvolutionInstance" placeholder="ex: tenant_t1774015430759"></div>
+    <div class="form-group"><label>Token da instancia (apikey)</label><input type="text" id="clubeEvolutionToken" placeholder="token do Evolution desta instancia"></div>
   </div>
   <div class="form-group">
     <label>Mensagem do WhatsApp (deixe vazio para usar o padrao)</label>
@@ -653,6 +654,7 @@ function criarClube(){
   document.getElementById('clubeCorSecundaria').value='#2196f3';
   document.getElementById('clubeWhatsappEnabled').checked=false;
   document.getElementById('clubeEvolutionInstance').value='';
+  document.getElementById('clubeEvolutionToken').value='';
   document.getElementById('clubeWhatsappTemplate').value='';
   openModal('modalClube');
 }
@@ -676,6 +678,7 @@ async function editarClube(id){
   document.getElementById('clubeCorSecundaria').value=cl.cor_secundaria||'#2196f3';
   document.getElementById('clubeWhatsappEnabled').checked=(cl.whatsapp_enabled===true||cl.whatsapp_enabled==='t'||cl.whatsapp_enabled===1||cl.whatsapp_enabled==='1');
   document.getElementById('clubeEvolutionInstance').value=cl.evolution_instance||'';
+  document.getElementById('clubeEvolutionToken').value=cl.evolution_token||'';
   document.getElementById('clubeWhatsappTemplate').value=cl.whatsapp_template||'';
   openModal('modalClube');
 }
@@ -704,6 +707,7 @@ async function salvarClube(){
     cor_secundaria:document.getElementById('clubeCorSecundaria').value,
     whatsapp_enabled:document.getElementById('clubeWhatsappEnabled').checked,
     evolution_instance:document.getElementById('clubeEvolutionInstance').value.trim(),
+    evolution_token:document.getElementById('clubeEvolutionToken').value.trim(),
     whatsapp_template:document.getElementById('clubeWhatsappTemplate').value.trim()
   };
   if(id)payload.id=parseInt(id);

@@ -50,7 +50,7 @@ if ($acao === 'registrar') {
 
     // Disparo automatico de WhatsApp (Evolution) — nunca trava a venda se falhar
     try {
-        $cfgStmt = $db->prepare("SELECT nome, whatsapp_enabled, evolution_instance, whatsapp_template FROM clubs WHERE id = ?");
+        $cfgStmt = $db->prepare("SELECT nome, whatsapp_enabled, evolution_instance, evolution_token, whatsapp_template FROM clubs WHERE id = ?");
         $cfgStmt->execute([$clubId]);
         $cfg = $cfgStmt->fetch();
         $waOn = $cfg && in_array($cfg['whatsapp_enabled'], [true, 't', '1', 1, 'true'], true);
@@ -63,7 +63,7 @@ if ($acao === 'registrar') {
                 'saldo' => $credito['credito_disponivel'],
                 'clube' => $cfg['nome'],
             ]);
-            enviarWhatsAppEvolution($cfg['evolution_instance'], $telefone, $msg);
+            enviarWhatsAppEvolution($cfg['evolution_instance'], $telefone, $msg, $cfg['evolution_token'] ?? null);
         }
     } catch (\Throwable $e) { /* nao bloquear a venda */ }
 
