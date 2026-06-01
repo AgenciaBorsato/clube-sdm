@@ -101,16 +101,15 @@ if ($acao === 'cadastrar') {
 
     // Inserir com campos expandidos
     $stmt = $db->prepare("
-        INSERT INTO clientes (club_id, nome, cpf, telefone, email, endereco, cidade, estado, cep, data_nascimento, observacoes, registrado_por)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO clientes (club_id, nome, cpf, telefone, email, endereco, cidade, estado, cep, data_nascimento, observacoes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING id
     ");
     $stmt->execute([
         $clubId, $nome, $cpf, $telefone, $email, $endereco,
         $cidade, $estado, $cep,
         $dataNascimento ?: null,
-        $observacoes,
-        getUserId()
+        $observacoes
     ]);
     $id = $stmt->fetch()['id'];
 

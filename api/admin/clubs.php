@@ -21,7 +21,7 @@ switch ($acao) {
         $limite = 20;
         $offset = ($pagina - 1) * $limite;
 
-        $sqlBase = " FROM clubes c";
+        $sqlBase = " FROM clubs c";
         $params = [];
 
         if ($busca) {
@@ -73,14 +73,14 @@ switch ($acao) {
         }
 
         // Validar unicidade do slug
-        $stmtSlug = $db->prepare("SELECT COUNT(*) FROM clubes WHERE slug = :slug");
+        $stmtSlug = $db->prepare("SELECT COUNT(*) FROM clubs WHERE slug = :slug");
         $stmtSlug->execute([':slug' => $slug]);
         if ((int) $stmtSlug->fetchColumn() > 0) {
             jsonResponse(['erro' => 'Slug ja existe. Escolha outro nome ou informe um slug diferente.'], 409);
         }
 
         $stmt = $db->prepare("
-            INSERT INTO clubes (nome, slug, segmento, endereco, cidade, estado, telefone, email, cor_primaria, cor_secundaria, expiracao_meses)
+            INSERT INTO clubs (nome, slug, segmento, endereco, cidade, estado, telefone, email, cor_primaria, cor_secundaria, expiracao_meses)
             VALUES (:nome, :slug, :segmento, :endereco, :cidade, :estado, :telefone, :email, :cor_primaria, :cor_secundaria, :expiracao_meses)
             RETURNING id
         ");
@@ -100,7 +100,7 @@ switch ($acao) {
 
         $id = $stmt->fetchColumn();
 
-        registrarAudit('clube_criado', ['club_id' => $id, 'nome' => $nome, 'slug' => $slug]);
+        registrarAudit($id, 'clube_criado', 'clubs', $id, null, ['nome' => $nome, 'slug' => $slug]);
 
         jsonResponse(['sucesso' => true, 'id' => $id, 'slug' => $slug]);
         break;
@@ -129,18 +129,18 @@ switch ($acao) {
 
         // Se slug estiver sendo alterado, validar unicidade
         if (isset($input['slug'])) {
-            $stmtSlug = $db->prepare("SELECT COUNT(*) FROM clubes WHERE slug = :slug AND id != :check_id");
+            $stmtSlug = $db->prepare("SELECT COUNT(*) FROM clubs WHERE slug = :slug AND id != :check_id");
             $stmtSlug->execute([':slug' => $input['slug'], ':check_id' => $id]);
             if ((int) $stmtSlug->fetchColumn() > 0) {
                 jsonResponse(['erro' => 'Slug ja existe para outro clube'], 409);
             }
         }
 
-        $sql = "UPDATE clubes SET " . implode(', ', $campos) . " WHERE id = :id";
+        $sql = "UPDATE clubs SET " . implode(', ', $campos) . " WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
 
-        registrarAudit('clube_editado', ['club_id' => $id, 'campos' => array_keys(array_diff_key($params, [':id' => true]))]);
+        registrarAudit($id, 'clube_editado', 'clubs', $id, null, ['campos' => array_keys(array_diff_key($params, [':id' => true]))]);
 
         jsonResponse(['sucesso' => true]);
         break;
@@ -151,10 +151,10 @@ switch ($acao) {
             jsonResponse(['erro' => 'ID do clube e obrigatorio'], 400);
         }
 
-        $stmt = $db->prepare("UPDATE clubes SET ativo = FALSE WHERE id = :id");
+        $stmt = $db->prepare("UPDATE clubs SET ativo = FALSE WHERE id = :id");
         $stmt->execute([':id' => $id]);
 
-        registrarAudit('clube_desativado', ['club_id' => $id]);
+        registrarAudit($id, 'clube_desativado', 'clubs', $id);
 
         jsonResponse(['sucesso' => true]);
         break;
@@ -165,10 +165,10 @@ switch ($acao) {
             jsonResponse(['erro' => 'ID do clube e obrigatorio'], 400);
         }
 
-        $stmt = $db->prepare("UPDATE clubes SET ativo = TRUE WHERE id = :id");
+        $stmt = $db->prepare("UPDATE clubs SET ativo = TRUE WHERE id = :id");
         $stmt->execute([':id' => $id]);
 
-        registrarAudit('clube_ativado', ['club_id' => $id]);
+        registrarAudit($id, 'clube_ativado', 'clubs', $id);
 
         jsonResponse(['sucesso' => true]);
         break;
@@ -180,7 +180,7 @@ switch ($acao) {
         }
 
         // Info do clube
-        $stmt = $db->prepare("SELECT * FROM clubes WHERE id = :id");
+        $stmt = $db->prepare("SELECT * FROM clubs WHERE id = :id");
         $stmt->execute([':id' => $id]);
         $clube = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -204,21 +204,21 @@ switch ($acao) {
         $stmtVendasMes = $db->prepare("
             SELECT COALESCE(SUM(valor), 0) FROM compras
             WHERE club_id = :id AND estornada = FALSE
-              AND EXTRACT(MONTH FROM criado_em) = EXTRACT(MONTH FROM CURRENT_DATE)
-              AND EXTRACT(YEAR FROM criado_em) = EXTRACT(YEAR FROM CURRENT_DATE)
+              AND EXTRACT(MONTH FROM data_compra) = EXTRACT(MONTH FROM CURRENT_DATE)
+              AND EXTRACT(YEAR FROM data_compra) = EXTRACT(YEAR FROM CURRENT_DATE)
         ");
         $stmtVendasMes->execute([':id' => $id]);
         $vendas_mes = (float) $stmtVendasMes->fetchColumn();
 
-        $stmtCashback = $db->prepare("SELECT COALESCE(SUM(valor_cashback), 0) FROM compras WHERE club_id = :id AND estornada = FALSE");
+        $stmtCashback = $db->prepare("SELECT COALESCE(SUM(cashback_valor), 0) FROM compras WHERE club_id = :id AND estornada = FALSE");
         $stmtCashback->execute([':id' => $id]);
         $cashback_gerado = (float) $stmtCashback->fetchColumn();
 
-        $stmtResgatado = $db->prepare("SELECT COALESCE(SUM(valor), 0) FROM resgates WHERE club_id = :id AND status = 'APROVADO'");
+        $stmtResgatado = $db->prepare("SELECT COALESCE(SUM(valor), 0) FROM resgates WHERE club_id = :id AND estornado = FALSE");
         $stmtResgatado->execute([':id' => $id]);
         $total_resgatado = (float) $stmtResgatado->fetchColumn();
 
-        $stmtUsuarios = $db->prepare("SELECT COUNT(*) FROM usuarios WHERE club_id = :id");
+        $stmtUsuarios = $db->prepare("SELECT COUNT(*) FROM users WHERE club_id = :id");
         $stmtUsuarios->execute([':id' => $id]);
         $num_usuarios = (int) $stmtUsuarios->fetchColumn();
 

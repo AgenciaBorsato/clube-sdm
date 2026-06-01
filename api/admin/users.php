@@ -35,7 +35,7 @@ switch ($acao) {
         $whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
 
         // Total count
-        $stmtCount = $db->prepare("SELECT COUNT(*) FROM usuarios u" . $whereSql);
+        $stmtCount = $db->prepare("SELECT COUNT(*) FROM users u" . $whereSql);
         $stmtCount->execute($params);
         $total = (int) $stmtCount->fetchColumn();
 
@@ -45,8 +45,8 @@ switch ($acao) {
                 u.id, u.nome, u.email, u.role, u.club_id,
                 c.nome AS club_nome,
                 u.ativo, u.ultimo_login, u.criado_em
-            FROM usuarios u
-            LEFT JOIN clubes c ON c.id = u.club_id
+            FROM users u
+            LEFT JOIN clubs c ON c.id = u.club_id
         " . $whereSql . " ORDER BY u.criado_em DESC LIMIT :limite OFFSET :offset";
 
         $stmt = $db->prepare($sql);
@@ -90,7 +90,7 @@ switch ($acao) {
         }
 
         // Validar unicidade do email
-        $stmtEmail = $db->prepare("SELECT COUNT(*) FROM usuarios WHERE email = :email");
+        $stmtEmail = $db->prepare("SELECT COUNT(*) FROM users WHERE email = :email");
         $stmtEmail->execute([':email' => $email]);
         if ((int) $stmtEmail->fetchColumn() > 0) {
             jsonResponse(['erro' => 'Email ja cadastrado'], 409);
@@ -99,7 +99,7 @@ switch ($acao) {
         $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
         $stmt = $db->prepare("
-            INSERT INTO usuarios (nome, email, senha, role, club_id)
+            INSERT INTO users (nome, email, password_hash, role, club_id)
             VALUES (:nome, :email, :senha, :role, :club_id)
             RETURNING id
         ");
@@ -113,7 +113,7 @@ switch ($acao) {
 
         $id = $stmt->fetchColumn();
 
-        registrarAudit('usuario_criado', ['user_id' => $id, 'nome' => $nome, 'email' => $email, 'role' => $role, 'club_id' => $club_id]);
+        registrarAudit($club_id, 'usuario_criado', 'users', $id, null, ['nome' => $nome, 'email' => $email, 'role' => $role]);
 
         jsonResponse(['sucesso' => true, 'id' => $id]);
         break;
@@ -147,18 +147,18 @@ switch ($acao) {
 
         // Se email estiver sendo alterado, validar unicidade
         if (isset($input['email'])) {
-            $stmtEmail = $db->prepare("SELECT COUNT(*) FROM usuarios WHERE email = :email AND id != :check_id");
+            $stmtEmail = $db->prepare("SELECT COUNT(*) FROM users WHERE email = :email AND id != :check_id");
             $stmtEmail->execute([':email' => $input['email'], ':check_id' => $id]);
             if ((int) $stmtEmail->fetchColumn() > 0) {
                 jsonResponse(['erro' => 'Email ja cadastrado para outro usuario'], 409);
             }
         }
 
-        $sql = "UPDATE usuarios SET " . implode(', ', $campos) . " WHERE id = :id";
+        $sql = "UPDATE users SET " . implode(', ', $campos) . " WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
 
-        registrarAudit('usuario_editado', ['user_id' => $id, 'campos' => array_keys(array_diff_key($params, [':id' => true]))]);
+        registrarAudit(null, 'usuario_editado', 'users', $id, null, ['campos' => array_keys(array_diff_key($params, [':id' => true]))]);
 
         jsonResponse(['sucesso' => true]);
         break;
@@ -169,10 +169,10 @@ switch ($acao) {
             jsonResponse(['erro' => 'ID do usuario e obrigatorio'], 400);
         }
 
-        $stmt = $db->prepare("UPDATE usuarios SET ativo = FALSE WHERE id = :id");
+        $stmt = $db->prepare("UPDATE users SET ativo = FALSE WHERE id = :id");
         $stmt->execute([':id' => $id]);
 
-        registrarAudit('usuario_desativado', ['user_id' => $id]);
+        registrarAudit(null, 'usuario_desativado', 'users', $id);
 
         jsonResponse(['sucesso' => true]);
         break;
@@ -183,10 +183,10 @@ switch ($acao) {
             jsonResponse(['erro' => 'ID do usuario e obrigatorio'], 400);
         }
 
-        $stmt = $db->prepare("UPDATE usuarios SET ativo = TRUE WHERE id = :id");
+        $stmt = $db->prepare("UPDATE users SET ativo = TRUE WHERE id = :id");
         $stmt->execute([':id' => $id]);
 
-        registrarAudit('usuario_ativado', ['user_id' => $id]);
+        registrarAudit(null, 'usuario_ativado', 'users', $id);
 
         jsonResponse(['sucesso' => true]);
         break;
@@ -205,10 +205,10 @@ switch ($acao) {
 
         $senhaHash = password_hash($nova_senha, PASSWORD_DEFAULT);
 
-        $stmt = $db->prepare("UPDATE usuarios SET senha = :senha WHERE id = :id");
+        $stmt = $db->prepare("UPDATE users SET password_hash = :senha WHERE id = :id");
         $stmt->execute([':senha' => $senhaHash, ':id' => $id]);
 
-        registrarAudit('senha_resetada', ['user_id' => $id]);
+        registrarAudit(null, 'senha_resetada', 'users', $id);
 
         jsonResponse(['sucesso' => true]);
         break;

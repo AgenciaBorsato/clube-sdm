@@ -51,7 +51,7 @@ if ($acao === 'login') {
     $db->prepare("UPDATE users SET ultimo_login = NOW() WHERE id = ?")->execute([$user['id']]);
 
     limparTentativasLogin();
-    registrarAudit('login', 'users', $user['id']);
+    registrarAudit($user['club_id'] ?? null, 'login', 'users', $user['id']);
 
     jsonResponse([
         'sucesso' => true,
@@ -93,7 +93,7 @@ if ($acao === 'verificar') {
 
 // ===== LOGOUT =====
 if ($acao === 'logout') {
-    registrarAudit('logout', 'users', $_SESSION['user_id'] ?? null);
+    registrarAudit($_SESSION['club_id'] ?? null, 'logout', 'users', $_SESSION['user_id'] ?? null);
     session_destroy();
     jsonResponse(['sucesso' => true]);
 }
@@ -122,7 +122,7 @@ if ($acao === 'alterar_senha') {
     $novoHash = password_hash($novaSenha, PASSWORD_DEFAULT);
     $db->prepare("UPDATE users SET password_hash = ?, atualizado_em = NOW() WHERE id = ?")->execute([$novoHash, getUserId()]);
 
-    registrarAudit('alterar_senha', 'users', getUserId());
+    registrarAudit($_SESSION['club_id'] ?? null, 'alterar_senha', 'users', getUserId());
     jsonResponse(['sucesso' => true, 'mensagem' => 'Senha alterada com sucesso']);
 }
 

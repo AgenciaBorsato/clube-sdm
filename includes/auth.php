@@ -103,12 +103,12 @@ function limparTentativasLogin() {
 
 // ===== AUDIT LOG =====
 
-function registrarAudit($acao, $tabela = null, $registroId = null, $dadosAnteriores = null, $dadosNovos = null) {
+function registrarAudit($clubId, $acao, $tabela = null, $registroId = null, $dadosAnteriores = null, $dadosNovos = null) {
     $db = getDB();
     $db->prepare("INSERT INTO audit_log (user_id, club_id, acao, tabela, registro_id, dados_anteriores, dados_novos, ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
        ->execute([
            getUserId() ?: null,
-           $_SESSION['club_id'] ?? null,
+           $clubId ?: null,
            $acao,
            $tabela,
            $registroId,

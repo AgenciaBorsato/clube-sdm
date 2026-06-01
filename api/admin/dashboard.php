@@ -9,11 +9,11 @@ $db = getDB();
 switch ($acao) {
 
     case 'global_stats':
-        // Total de clubes ativos
-        $stmtClubes = $db->query("SELECT COUNT(*) FROM clubes WHERE ativo = TRUE");
+        // Total de clubs ativos
+        $stmtClubes = $db->query("SELECT COUNT(*) FROM clubs WHERE ativo = TRUE");
         $total_clubes = (int) $stmtClubes->fetchColumn();
 
-        // Total de clientes (todos os clubes)
+        // Total de clientes (todos os clubs)
         $stmtClientes = $db->query("SELECT COUNT(*) FROM clientes");
         $total_clientes = (int) $stmtClientes->fetchColumn();
 
@@ -25,17 +25,17 @@ switch ($acao) {
         $stmtVendasMes = $db->query("
             SELECT COALESCE(SUM(valor), 0) FROM compras
             WHERE estornada = FALSE
-              AND EXTRACT(MONTH FROM criado_em) = EXTRACT(MONTH FROM CURRENT_DATE)
-              AND EXTRACT(YEAR FROM criado_em) = EXTRACT(YEAR FROM CURRENT_DATE)
+              AND EXTRACT(MONTH FROM data_compra) = EXTRACT(MONTH FROM CURRENT_DATE)
+              AND EXTRACT(YEAR FROM data_compra) = EXTRACT(YEAR FROM CURRENT_DATE)
         ");
         $vendas_mes = (float) $stmtVendasMes->fetchColumn();
 
         // Total de cashback gerado
-        $stmtCashback = $db->query("SELECT COALESCE(SUM(valor_cashback), 0) FROM compras WHERE estornada = FALSE");
+        $stmtCashback = $db->query("SELECT COALESCE(SUM(cashback_valor), 0) FROM compras WHERE estornada = FALSE");
         $total_cashback_gerado = (float) $stmtCashback->fetchColumn();
 
         // Total resgatado
-        $stmtResgatado = $db->query("SELECT COALESCE(SUM(valor), 0) FROM resgates WHERE status = 'APROVADO'");
+        $stmtResgatado = $db->query("SELECT COALESCE(SUM(valor), 0) FROM resgates WHERE estornado = FALSE");
         $total_resgatado = (float) $stmtResgatado->fetchColumn();
 
         jsonResponse([
@@ -60,11 +60,11 @@ switch ($acao) {
                 c.ativo,
                 (SELECT COUNT(*) FROM clientes cl WHERE cl.club_id = c.id) AS num_clientes,
                 (SELECT COALESCE(SUM(co.valor), 0) FROM compras co WHERE co.club_id = c.id AND co.estornada = FALSE
-                    AND EXTRACT(MONTH FROM co.criado_em) = EXTRACT(MONTH FROM CURRENT_DATE)
-                    AND EXTRACT(YEAR FROM co.criado_em) = EXTRACT(YEAR FROM CURRENT_DATE)
+                    AND EXTRACT(MONTH FROM co.data_compra) = EXTRACT(MONTH FROM CURRENT_DATE)
+                    AND EXTRACT(YEAR FROM co.data_compra) = EXTRACT(YEAR FROM CURRENT_DATE)
                 ) AS vendas_mes,
                 (SELECT COALESCE(SUM(co.valor), 0) FROM compras co WHERE co.club_id = c.id AND co.estornada = FALSE) AS vendas_total
-            FROM clubes c
+            FROM clubs c
         ";
 
         $params = [];
