@@ -95,7 +95,7 @@ switch ($acao) {
             ':email' => $input['email'] ?? null,
             ':cor_primaria' => $input['cor_primaria'] ?? null,
             ':cor_secundaria' => $input['cor_secundaria'] ?? null,
-            ':expiracao_meses' => $input['expiracao_meses'] ?? null,
+            ':expiracao_meses' => $input['expiracao_meses'] ?? 3,
         ]);
 
         $id = $stmt->fetchColumn();
