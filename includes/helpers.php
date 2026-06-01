@@ -25,6 +25,70 @@ function getExpiracaoMeses($clubId) {
     return $row ? intval($row['expiracao_meses']) : 3;
 }
 
+/**
+ * Envia mensagem de texto via Evolution API.
+ * URL e API key vem de variaveis de ambiente (EVOLUTION_API_URL, EVOLUTION_API_KEY).
+ * Falha silenciosamente (retorna false) — nunca deve travar o fluxo de venda.
+ */
+function enviarWhatsAppEvolution($instance, $telefone, $mensagem) {
+    $base = getenv('EVOLUTION_API_URL');
+    $key = getenv('EVOLUTION_API_KEY');
+    if (!$base || !$key || !$instance || !$telefone || !$mensagem) return false;
+
+    $numero = preg_replace('/\D/', '', $telefone);
+    if ($numero === '') return false;
+    if (strlen($numero) <= 11) $numero = '55' . $numero; // DDI Brasil
+
+    $url = rtrim($base, '/') . '/message/sendText/' . rawurlencode($instance);
+    $payload = json_encode(['number' => $numero, 'text' => $mensagem], JSON_UNESCAPED_UNICODE);
+
+    try {
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'apikey: ' . $key],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 4,
+                CURLOPT_TIMEOUT => 6,
+            ]);
+            curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            return $code >= 200 && $code < 300;
+        }
+        // fallback sem curl
+        $ctx = stream_context_create(['http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/json\r\napikey: $key\r\n",
+            'content' => $payload,
+            'timeout' => 6,
+            'ignore_errors' => true,
+        ]]);
+        return @file_get_contents($url, false, $ctx) !== false;
+    } catch (\Throwable $e) {
+        return false;
+    }
+}
+
+/**
+ * Monta a mensagem de cashback a partir do template do clube (ou um padrao).
+ * Variaveis: {nome} {valor} {cashback} {saldo} {clube}
+ */
+function montarMensagemCashback($template, $dados) {
+    $padrao = "Ola {nome}! Sua compra de {valor} na {clube} gerou {cashback} de cashback. Seu saldo disponivel e {saldo}. Obrigado!";
+    $tpl = trim((string) $template) !== '' ? $template : $padrao;
+    $fmt = fn($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
+    return strtr($tpl, [
+        '{nome}' => $dados['nome'] ?? '',
+        '{valor}' => $fmt($dados['valor'] ?? 0),
+        '{cashback}' => $fmt($dados['cashback'] ?? 0),
+        '{saldo}' => $fmt($dados['saldo'] ?? 0),
+        '{clube}' => $dados['clube'] ?? '',
+    ]);
+}
+
 function calcularCreditoCliente($clubId, $clienteId) {
     $db = getDB();
 

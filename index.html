@@ -367,6 +367,20 @@ table tr.clickable{cursor:pointer}table tr.clickable:hover{background:var(--blue
     <div class="form-group"><label>Cor Primaria</label><input type="color" id="clubeCorPrimaria" value="#0a2540"></div>
     <div class="form-group"><label>Cor Secundaria</label><input type="color" id="clubeCorSecundaria" value="#2196f3"></div>
   </div>
+  <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0">
+  <div class="form-group">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+      <input type="checkbox" id="clubeWhatsappEnabled" style="width:auto"> Disparar WhatsApp automatico ao registrar compra
+    </label>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Instancia Evolution (nome)</label><input type="text" id="clubeEvolutionInstance" placeholder="ex: drogaria-sao-bento"></div>
+  </div>
+  <div class="form-group">
+    <label>Mensagem do WhatsApp (deixe vazio para usar o padrao)</label>
+    <textarea id="clubeWhatsappTemplate" rows="3" placeholder="Ola {nome}! Sua compra de {valor} gerou {cashback} de cashback. Saldo: {saldo}." style="width:100%"></textarea>
+    <small style="color:#6b7280">Variaveis: {nome} {valor} {cashback} {saldo} {clube}</small>
+  </div>
   <div class="modal-actions">
     <button class="btn btn-secondary" onclick="closeModal('modalClube')">Cancelar</button>
     <button class="btn btn-primary" id="btnSalvarClube" onclick="salvarClube()">Salvar</button>
@@ -637,6 +651,9 @@ function criarClube(){
   document.getElementById('clubeExpiracao').value='6';
   document.getElementById('clubeCorPrimaria').value='#0a2540';
   document.getElementById('clubeCorSecundaria').value='#2196f3';
+  document.getElementById('clubeWhatsappEnabled').checked=false;
+  document.getElementById('clubeEvolutionInstance').value='';
+  document.getElementById('clubeWhatsappTemplate').value='';
   openModal('modalClube');
 }
 
@@ -657,6 +674,9 @@ async function editarClube(id){
   document.getElementById('clubeEstado').value=cl.estado||'';
   document.getElementById('clubeCorPrimaria').value=cl.cor_primaria||'#0a2540';
   document.getElementById('clubeCorSecundaria').value=cl.cor_secundaria||'#2196f3';
+  document.getElementById('clubeWhatsappEnabled').checked=(cl.whatsapp_enabled===true||cl.whatsapp_enabled==='t'||cl.whatsapp_enabled===1||cl.whatsapp_enabled==='1');
+  document.getElementById('clubeEvolutionInstance').value=cl.evolution_instance||'';
+  document.getElementById('clubeWhatsappTemplate').value=cl.whatsapp_template||'';
   openModal('modalClube');
 }
 
@@ -681,7 +701,10 @@ async function salvarClube(){
     cidade:document.getElementById('clubeCidade').value.trim(),
     estado:document.getElementById('clubeEstado').value,
     cor_primaria:document.getElementById('clubeCorPrimaria').value,
-    cor_secundaria:document.getElementById('clubeCorSecundaria').value
+    cor_secundaria:document.getElementById('clubeCorSecundaria').value,
+    whatsapp_enabled:document.getElementById('clubeWhatsappEnabled').checked,
+    evolution_instance:document.getElementById('clubeEvolutionInstance').value.trim(),
+    whatsapp_template:document.getElementById('clubeWhatsappTemplate').value.trim()
   };
   if(id)payload.id=parseInt(id);
 

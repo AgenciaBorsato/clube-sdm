@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS clubs (
   cor_primaria VARCHAR(7) DEFAULT '#2196f3',
   cor_secundaria VARCHAR(7) DEFAULT '#0a2540',
   expiracao_meses INT NOT NULL DEFAULT 3,
+  whatsapp_enabled BOOLEAN DEFAULT FALSE,
+  evolution_instance VARCHAR(120),
+  whatsapp_template TEXT,
   ativo BOOLEAN DEFAULT TRUE,
   criado_em TIMESTAMP DEFAULT NOW(),
   atualizado_em TIMESTAMP DEFAULT NOW()

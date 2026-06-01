@@ -152,8 +152,8 @@ switch ($acao) {
         }
 
         $stmt = $db->prepare("
-            INSERT INTO clubs (nome, slug, segmento, endereco, cidade, estado, telefone, email, cor_primaria, cor_secundaria, expiracao_meses)
-            VALUES (:nome, :slug, :segmento, :endereco, :cidade, :estado, :telefone, :email, :cor_primaria, :cor_secundaria, :expiracao_meses)
+            INSERT INTO clubs (nome, slug, segmento, endereco, cidade, estado, telefone, email, cor_primaria, cor_secundaria, expiracao_meses, whatsapp_enabled, evolution_instance, whatsapp_template)
+            VALUES (:nome, :slug, :segmento, :endereco, :cidade, :estado, :telefone, :email, :cor_primaria, :cor_secundaria, :expiracao_meses, :whatsapp_enabled, :evolution_instance, :whatsapp_template)
             RETURNING id
         ");
         $stmt->execute([
@@ -168,6 +168,9 @@ switch ($acao) {
             ':cor_primaria' => $input['cor_primaria'] ?? null,
             ':cor_secundaria' => $input['cor_secundaria'] ?? null,
             ':expiracao_meses' => $input['expiracao_meses'] ?? 3,
+            ':whatsapp_enabled' => !empty($input['whatsapp_enabled']) ? 'TRUE' : 'FALSE',
+            ':evolution_instance' => $input['evolution_instance'] ?? null,
+            ':whatsapp_template' => $input['whatsapp_template'] ?? null,
         ]);
         $id = (int) $stmt->fetchColumn();
         registrarAudit($id, 'clube_criado', 'clubs', $id, null, ['nome' => $nome, 'slug' => $slug]);
@@ -182,7 +185,7 @@ switch ($acao) {
         $id = (int) ($input['id'] ?? 0);
         if (!$id) jsonResponse(['erro' => 'ID do clube obrigatorio'], 400);
 
-        $editaveis = ['nome', 'slug', 'segmento', 'endereco', 'cidade', 'estado', 'telefone', 'email', 'cor_primaria', 'cor_secundaria', 'expiracao_meses'];
+        $editaveis = ['nome', 'slug', 'segmento', 'endereco', 'cidade', 'estado', 'telefone', 'email', 'cor_primaria', 'cor_secundaria', 'expiracao_meses', 'evolution_instance', 'whatsapp_template'];
         $campos = [];
         $params = [':id' => $id];
         foreach ($editaveis as $campo) {
@@ -190,6 +193,10 @@ switch ($acao) {
                 $campos[] = "$campo = :$campo";
                 $params[":$campo"] = $input[$campo];
             }
+        }
+        if (isset($input['whatsapp_enabled'])) {
+            $campos[] = "whatsapp_enabled = :whatsapp_enabled";
+            $params[':whatsapp_enabled'] = !empty($input['whatsapp_enabled']) ? 'TRUE' : 'FALSE';
         }
         if (empty($campos)) jsonResponse(['erro' => 'Nenhum campo para atualizar'], 400);
 

@@ -48,6 +48,25 @@ if ($acao === 'registrar') {
         'cashback_percentual' => $pct, 'cashback_valor' => $cashbackValor
     ]);
 
+    // Disparo automatico de WhatsApp (Evolution) — nunca trava a venda se falhar
+    try {
+        $cfgStmt = $db->prepare("SELECT nome, whatsapp_enabled, evolution_instance, whatsapp_template FROM clubs WHERE id = ?");
+        $cfgStmt->execute([$clubId]);
+        $cfg = $cfgStmt->fetch();
+        $waOn = $cfg && in_array($cfg['whatsapp_enabled'], [true, 't', '1', 1, 'true'], true);
+        if ($waOn && !empty($cfg['evolution_instance'])) {
+            $credito = calcularCreditoCliente($clubId, $cliente['id']);
+            $msg = montarMensagemCashback($cfg['whatsapp_template'], [
+                'nome' => $cliente['nome'],
+                'valor' => $valor,
+                'cashback' => $cashbackValor,
+                'saldo' => $credito['credito_disponivel'],
+                'clube' => $cfg['nome'],
+            ]);
+            enviarWhatsAppEvolution($cfg['evolution_instance'], $telefone, $msg);
+        }
+    } catch (\Throwable $e) { /* nao bloquear a venda */ }
+
     jsonResponse([
         'sucesso' => true,
         'mensagem' => 'Compra registrada com sucesso',
