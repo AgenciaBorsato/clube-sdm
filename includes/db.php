@@ -3,7 +3,22 @@
 // CLUBE SDM - Conexao e Utilitarios Base
 // ============================================================
 
-session_start();
+// Sessao persistente e explicita (corrige logout ao atualizar a pagina).
+// Atras do proxy HTTPS do Railway, detecta HTTPS via X-Forwarded-Proto.
+if (session_status() === PHP_SESSION_NONE) {
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+        || (($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '') === 'on');
+    ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 7); // 7 dias
+    session_set_cookie_params([
+        'lifetime' => 60 * 60 * 24 * 7, // 7 dias (cookie persistente, sobrevive a refresh/fechar aba)
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
 
 function getDB() {
     static $pdo = null;
