@@ -196,6 +196,12 @@ table td{padding:12px 14px;font-size:13px;border-bottom:1px solid #eef3f0}table 
 <!-- ============ APP ============ -->
 <div class="app" id="app">
 
+<!-- BANNER DE IMPERSONACAO (Super Admin acessando o clube) -->
+<div id="impersonateBanner" style="display:none;position:sticky;top:0;z-index:10000;background:#0a2540;color:#fff;padding:10px 16px;font-size:14px;font-weight:600;display:none;align-items:center;justify-content:center;gap:14px;text-align:center">
+  <span>⚡ Você está acessando como <strong>Super Admin</strong> (god mode) — <span id="impersonateClubName"></span></span>
+  <button onclick="voltarAoAdmin()" style="background:#fff;color:#0a2540;border:none;padding:6px 14px;border-radius:6px;font-weight:700;cursor:pointer">← Voltar ao painel admin</button>
+</div>
+
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebar">
 <div class="sidebar-brand">
@@ -763,8 +769,25 @@ function initApp() {
   // Hide admin sections for operators
   document.getElementById('navAdmin').style.display = isAdmin() ? '' : 'none';
 
+  // Banner de impersonacao (super admin em god mode)
+  const banner = document.getElementById('impersonateBanner');
+  if (u.impersonating) {
+    document.getElementById('impersonateClubName').textContent = u.club_name || 'Clube';
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+
   updateDashboard();
   updateDate();
+}
+
+/* ---- Voltar ao painel admin (encerra impersonacao) ---- */
+async function voltarAoAdmin() {
+  await api('auth.php', { acao: 'stop_impersonate' });
+  sessionStorage.removeItem('club_user');
+  sessionStorage.setItem('sdm_logged', '1'); // p/ o index.html reconhecer a sessao do super admin
+  window.location.href = 'index.html';
 }
 
 /* ---- Dashboard ---- */
@@ -1207,11 +1230,37 @@ async function alterarSenha() {
 }
 
 /* ---- Init on load ---- */
-(function() {
-  const u = getUser();
-  if (u) {
-    initApp();
+(async function() {
+  // Valida a sessao no servidor (cookie) — funciona apos refresh e p/ impersonacao
+  const r = await api('auth.php?acao=verificar');
+  if (!r || !r.sucesso || !r.usuario) {
+    // Nao autenticado: mostra tela de login
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loginPage').style.display = 'flex';
+    return;
   }
+  let u = r.usuario;
+  if (u.role === 'SUPER_ADMIN') {
+    if (r.impersonate_club_id) {
+      // Super admin acessando um clube (god mode) -> opera como admin daquele clube
+      u = {
+        id: u.id,
+        nome: 'Super Admin',
+        email: u.email,
+        role: 'CLUB_ADMIN',
+        club_id: r.impersonate_club_id,
+        club_name: r.impersonate_club_nome,
+        club_nome: r.impersonate_club_nome,
+        impersonating: true
+      };
+    } else {
+      // Super admin sem clube selecionado -> vai para o painel admin
+      window.location.href = 'index.html';
+      return;
+    }
+  }
+  sessionStorage.setItem('club_user', JSON.stringify(u));
+  initApp();
 })();
 </script>
 </body>

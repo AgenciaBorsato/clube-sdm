@@ -587,6 +587,7 @@ async function renderClubes(){
         <td>${cl.email||'—'}</td>
         <td>${statusBadge(cl.status)}</td>
         <td>
+          <button class="btn btn-primary btn-xs" onclick="acessarClube(${cl.id},'${(cl.nome||'').replace(/'/g,"\\'")}')" style="margin:2px">Acessar</button>
           <button class="btn btn-secondary btn-xs" onclick="editarClube(${cl.id})" style="margin:2px">Editar</button>
           <button class="btn ${cl.status==='ativo'||cl.status===1||cl.status==='1'?'btn-danger':'btn-secondary'} btn-xs" onclick="toggleClubeStatus(${cl.id},'${cl.nome}','${cl.status}')" style="margin:2px">${cl.status==='ativo'||cl.status===1||cl.status==='1'?'Desativar':'Ativar'}</button>
         </td>
@@ -610,6 +611,17 @@ function renderClubesPagination(){
 }
 
 function filtrarClubes(){clearTimeout(clubesSearchTO);clubesSearchTO=setTimeout(()=>{clubesPag.page=1;renderClubes();},300);}
+
+// Acessar painel do clube como Super Admin (god mode)
+async function acessarClube(id,nome){
+  const r=await api('auth.php',{acao:'impersonate',club_id:id});
+  if(r.sucesso){
+    window.open('club.html','_blank');
+    toast('Abrindo painel de '+(nome||'clube')+' em nova aba');
+  }else{
+    toast(r.erro||'Erro ao acessar clube','error');
+  }
+}
 
 function gerarSlug(){
   const nome=document.getElementById('clubeNome').value;

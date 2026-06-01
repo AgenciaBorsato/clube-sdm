@@ -77,6 +77,15 @@ if ($acao === 'verificar') {
     if (empty($_SESSION['logado'])) {
         jsonResponse(['logado' => false]);
     }
+    // Contexto de impersonacao (super admin "acessando" um clube)
+    $impClubId = null;
+    $impClubNome = null;
+    if (($_SESSION['user_role'] ?? '') === 'SUPER_ADMIN' && !empty($_SESSION['impersonate_club_id'])) {
+        $impClubId = intval($_SESSION['impersonate_club_id']);
+        $stmtC = $db->prepare("SELECT nome FROM clubs WHERE id = ?");
+        $stmtC->execute([$impClubId]);
+        $impClubNome = $stmtC->fetchColumn() ?: null;
+    }
     jsonResponse([
         'sucesso' => true,
         'logado' => true,
@@ -90,8 +99,32 @@ if ($acao === 'verificar') {
             'club_name' => $_SESSION['club_nome'] ?? null,
             'club_slug' => $_SESSION['club_slug'] ?? null
         ],
+        'impersonate_club_id' => $impClubId,
+        'impersonate_club_nome' => $impClubNome,
         'csrf_token' => $_SESSION['csrf_token'] ?? ''
     ]);
+}
+
+// ===== IMPERSONAR CLUBE (somente SUPER_ADMIN) =====
+if ($acao === 'impersonate') {
+    exigirSuperAdmin();
+    $clubId = intval($input['club_id'] ?? 0);
+    if (!$clubId) jsonResponse(['sucesso' => false, 'erro' => 'club_id obrigatorio'], 400);
+
+    $stmt = $db->prepare("SELECT id, nome, slug FROM clubs WHERE id = ?");
+    $stmt->execute([$clubId]);
+    $club = $stmt->fetch();
+    if (!$club) jsonResponse(['sucesso' => false, 'erro' => 'Clube nao encontrado'], 404);
+
+    $_SESSION['impersonate_club_id'] = $clubId;
+    registrarAudit($clubId, 'impersonate_clube', 'clubs', $clubId);
+    jsonResponse(['sucesso' => true, 'club' => $club]);
+}
+
+// ===== PARAR IMPERSONACAO =====
+if ($acao === 'stop_impersonate') {
+    unset($_SESSION['impersonate_club_id']);
+    jsonResponse(['sucesso' => true]);
 }
 
 // ===== LOGOUT =====

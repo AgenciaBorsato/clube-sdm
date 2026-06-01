@@ -40,6 +40,10 @@ function getClubId($obrigatorio = true) {
     $role = $_SESSION['user_role'] ?? '';
 
     if ($role === 'SUPER_ADMIN') {
+        // Impersonacao: se o super admin "acessou" um clube, usa esse contexto
+        if (!empty($_SESSION['impersonate_club_id'])) {
+            return intval($_SESSION['impersonate_club_id']);
+        }
         $input = getInput();
         $clubId = intval($input['club_id'] ?? $_GET['club_id'] ?? 0);
         if ($obrigatorio && !$clubId) {
