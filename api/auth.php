@@ -62,6 +62,7 @@ if ($acao === 'login') {
             'role' => $user['role'],
             'club_id' => $user['club_id'] ? intval($user['club_id']) : null,
             'club_nome' => $user['club_nome'],
+            'club_name' => $user['club_nome'],
             'club_slug' => $user['club_slug'],
             'club_logo' => $user['club_logo'],
             'cor_primaria' => $user['cor_primaria'],
@@ -77,6 +78,7 @@ if ($acao === 'verificar') {
         jsonResponse(['logado' => false]);
     }
     jsonResponse([
+        'sucesso' => true,
         'logado' => true,
         'usuario' => [
             'id' => $_SESSION['user_id'],
@@ -85,6 +87,7 @@ if ($acao === 'verificar') {
             'role' => $_SESSION['user_role'],
             'club_id' => $_SESSION['club_id'],
             'club_nome' => $_SESSION['club_nome'] ?? null,
+            'club_name' => $_SESSION['club_nome'] ?? null,
             'club_slug' => $_SESSION['club_slug'] ?? null
         ],
         'csrf_token' => $_SESSION['csrf_token'] ?? ''

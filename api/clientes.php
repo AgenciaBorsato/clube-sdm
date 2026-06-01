@@ -78,7 +78,7 @@ if ($acao === 'cadastrar') {
     $cidade = trim($input['cidade'] ?? '');
     $estado = trim($input['estado'] ?? '');
     $cep = preg_replace('/\D/', '', $input['cep'] ?? '');
-    $dataNascimento = trim($input['data_nascimento'] ?? '');
+    $dataNascimento = trim($input['data_nascimento'] ?? $input['nascimento'] ?? '');
     $observacoes = trim($input['observacoes'] ?? '');
 
     // Validacoes obrigatorias
@@ -133,7 +133,7 @@ if ($acao === 'editar') {
     $cidade = trim($input['cidade'] ?? '');
     $estado = trim($input['estado'] ?? '');
     $cep = preg_replace('/\D/', '', $input['cep'] ?? '');
-    $dataNascimento = trim($input['data_nascimento'] ?? '');
+    $dataNascimento = trim($input['data_nascimento'] ?? $input['nascimento'] ?? '');
     $observacoes = trim($input['observacoes'] ?? '');
 
     if (!$id) jsonResponse(['sucesso' => false, 'erro' => 'ID invalido'], 400);
@@ -198,6 +198,27 @@ if ($acao === 'buscar') {
     // Enriquecer com credito
     $info = calcularCreditoCliente($clubId, $cliente['id']);
     $cliente = array_merge($cliente, $info);
+    $cliente['nascimento'] = $cliente['data_nascimento'] ?? null; // alias p/ o frontend
+    jsonResponse(['sucesso' => true, 'cliente' => $cliente]);
+}
+
+// ============================================================
+// BUSCAR_POR_ID - retorna um cliente pelo ID (para edicao)
+// ============================================================
+if ($acao === 'buscar_por_id') {
+    $id = intval($input['id'] ?? $_GET['id'] ?? 0);
+    if (!$id) jsonResponse(['sucesso' => false, 'erro' => 'ID invalido'], 400);
+
+    $stmt = $db->prepare("SELECT * FROM clientes WHERE id = ? AND club_id = ? AND ativo = TRUE");
+    $stmt->execute([$id, $clubId]);
+    $cliente = $stmt->fetch();
+    if (!$cliente) {
+        jsonResponse(['sucesso' => false, 'erro' => 'Cliente nao encontrado'], 404);
+    }
+
+    $info = calcularCreditoCliente($clubId, $cliente['id']);
+    $cliente = array_merge($cliente, $info);
+    $cliente['nascimento'] = $cliente['data_nascimento'] ?? null; // alias p/ o frontend
     jsonResponse(['sucesso' => true, 'cliente' => $cliente]);
 }
 
