@@ -6,7 +6,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 
 $input = getInput();
-$acao = $input['acao'] ?? '';
+$acao = $input['acao'] ?? $_GET['acao'] ?? '';
 $db = getDB();
 
 // ===== LOGIN =====
